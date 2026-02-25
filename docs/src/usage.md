@@ -5,9 +5,13 @@
 lush loads the first existing file from:
 
 1. `LUSH_CONFIG`
-2. `$XDG_CONFIG_HOME/lush/config.lua`
-3. `$HOME/.config/lush/config.lua`
-4. `./config.lua`
+2. `$XDG_CONFIG_HOME/lush/init.lua`
+3. `$HOME/.config/lush/init.lua`
+4. `./init.lua`
+
+if `LUSH_CONFIG` points to a directory, lush looks for: `<LUSH_CONFIG>/init.lua`
+
+if `LUSH_CONFIG` points to a file, that exact file is used.
 
 ## minimal config
 
