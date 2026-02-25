@@ -38,12 +38,18 @@ fn resolve_config_relative_path(config_path: &Path, raw: &str) -> String {
         return raw.to_string();
     }
 
-    config_path
+    if css_path.exists() {
+        return css_path.to_string_lossy().to_string();
+    }
+
+    let joined = config_path
         .parent()
         .unwrap_or_else(|| Path::new("."))
         .join(css_path)
         .to_string_lossy()
-        .to_string()
+        .to_string();
+
+    joined
 }
 
 fn initialize_lua_state(lua: &Lua, bridge: LuaStateBridge, config_path: &Path) -> Result<()> {
