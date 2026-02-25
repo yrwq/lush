@@ -1,0 +1,937 @@
+<!DOCTYPE HTML>
+<html lang="en" class="ayu sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Lush Docs</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Documentation for configuring and extending Lush.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-2459343d.css">
+        <link rel="stylesheet" href="css/chrome-ae938929.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/gruvbox-805121fd.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "ayu";
+            const default_dark_theme = "ayu";
+            window.path_to_searchindex_js = "searchindex-f970c26f.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-16b21114.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Lush Docs</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/yrwq/lush" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="usage"><a class="header" href="#usage">usage</a></h1>
+<h2 id="config-location"><a class="header" href="#config-location">config location</a></h2>
+<p>lush loads the first existing file from:</p>
+<ol>
+<li><code>LUSH_CONFIG</code></li>
+<li><code>$XDG_CONFIG_HOME/lush/config.lua</code></li>
+<li><code>$HOME/.config/lush/config.lua</code></li>
+<li><code>./config.lua</code></li>
+</ol>
+<h2 id="minimal-config"><a class="header" href="#minimal-config">minimal config</a></h2>
+<pre><code class="language-lua">local lush = require("lush")
+local ui = lush.ui
+
+ui.css("style.css")
+
+ui.windows({
+  ui.window({
+    name = "bar",
+    position = "top",
+    layer = "top",
+    exclusive = true,
+    height = 30,
+    root = ui.hbox({
+      spacing = 8,
+      children = {
+        ui.label({ text = "hello" }),
+        ui.clock({ format = "%H:%M", interval = 60 }),
+      },
+    }),
+  }),
+})
+</code></pre>
+<h2 id="common-patterns"><a class="header" href="#common-patterns">common patterns</a></h2>
+<h3 id="daemon-control"><a class="header" href="#daemon-control">daemon control</a></h3>
+<p>start lush daemon:</p>
+<pre><code class="language-bash">lush daemon
+</code></pre>
+<p>control it from another shell:</p>
+<pre><code class="language-bash">lush ping
+lush list
+lush toggle bar
+lush reload
+lush reload-css
+</code></pre>
+<h3 id="use-data-providers"><a class="header" href="#use-data-providers">use data providers</a></h3>
+<pre><code class="language-lua">local lush = require("lush")
+
+lush.data.use("cpu", { interval = 2 })
+lush.data.use("memory", { interval = 3 })
+lush.data.use("network", { interval = 1, iface = "wlan0" }) -- optional iface
+lush.data.use("disk", { interval = 10, path = "/" }) -- optional path
+lush.data.use("battery")
+
+-- event driven with fallback refresh
+lush.data.use("bluetooth", { interval = 120 })
+lush.data.use("mpris", { interval = 20 })
+
+lush.data.use("compositor", { output = "focused" }) -- optional output
+</code></pre>
+<p>you can then bind widgets directly to emitted keys</p>
+<p>see <a href="#signals">signals</a> for reference</p>
+<h3 id="watch-a-command"><a class="header" href="#watch-a-command">watch a command</a></h3>
+<pre><code class="language-lua">local lush = require("lush")
+
+local id = lush.process.watch("sleep 2 &amp;&amp; echo tick", 1, function(output)
+  lush.state.set("watch.tick", output)
+end, {
+  queue_policy = "latest", -- default: keep at most one pending rerun
+  -- queue_policy = "drop", -- skip ticks while command is still running
+})
+</code></pre>
+<h3 id="bind-state-to-labels"><a class="header" href="#bind-state-to-labels">bind state to labels</a></h3>
+<pre><code class="language-lua">local lush = require("lush")
+local ui = lush.ui
+
+lush.data.use("battery")
+lush.data.use("cpu", { interval = 2 })
+
+local label = ui.label({
+  bind = "data.cpu.percent",
+  format = "cpu {value}%",
+  format_states = {
+    critical = "cpu {value} !",
+    default = "cpu {value}",
+  },
+})
+
+local battery = ui.label({
+  binds = {
+    ["battery.percent"] = "data.battery.percent",
+    ["battery.state"] = "data.battery.state",
+  },
+  format = "bat {battery.percent}% ({battery.state})",
+})
+
+local battery_state = ui.label({
+  binds = {
+    ["battery.state"] = "data.battery.state",
+    ["battery.percent"] = "data.battery.percent",
+  },
+  format = "bat [{battery.state}] {battery.percent}%",
+  rules = {
+    { target = "literal", match = "bat", color = "#928374", weight = "bold" },
+    { target = "value", token = "battery.state", match = "charging", color = "#8ec07c", weight = "bold" },
+    { target = "value", token = "battery.state", match = "dis*", color = "#d79921", weight = "bold" },
+    { target = "value", token = "battery.percent", format = "{value}%" },
+    { target = "value", token = "battery.percent", max = 20, color = "#fb4934", weight = "bold" },
+    { target = "value", token = "battery.percent", min = 21, max = 40, color = "#fabd2f", weight = "bold" },
+    { target = "value", token = "battery.percent", min = 41, color = "#8ec07c" },
+  },
+})
+</code></pre>
+<p>label basics:</p>
+<ul>
+<li>without <code>rules</code>, <code>ui.label</code> just renders the resolved format text.</li>
+<li>placeholders (<code>{value}</code>, <code>{state}</code>, <code>{token}</code>) are matched as <code>target = "value"</code>.</li>
+<li>plain text in <code>format</code> (like <code>bat</code>, <code>%</code>, punctuation) is matched as <code>target = "literal"</code>.</li>
+<li>rules are merged in order; put defaults first and overrides later.</li>
+<li>use <code>match</code>/<code>token</code> globs (<code>*</code>, <code>?</code>) for string matching and <code>min</code>/<code>max</code> for thresholds.</li>
+<li>you can set <code>class</code> in a rule to add css class(es) when that rule matches.</li>
+</ul>
+<h3 id="formatting"><a class="header" href="#formatting">formatting</a></h3>
+<p><code>label</code>, <code>button</code>, and <code>workspaces</code> support <code>format</code> and <code>format_states</code>.
+<code>clock</code> keeps <code>format</code> for strftime and uses <code>display_format</code> for placeholders.</p>
+<pre><code class="language-lua">ui.clock({
+  format = "%H:%M:%S",
+  display_format = "[{value}]",
+  class_bind = "clock.mode",
+  format_states = {
+    default = "{value}",
+    alt = "&lt;{time}&gt;",
+  },
+})
+
+lush.process.watch("echo ok", 2, function(output)
+  lush.state.set("shell.out", output)
+end)
+
+ui.label({
+  bind = "shell.out",
+  format = "shell {value}",
+  class_bind = "shell.mode",
+  format_states = {
+    warn = "shell ! {value}",
+  },
+})
+</code></pre>
+<h3 id="toggle-windows-from-lua"><a class="header" href="#toggle-windows-from-lua">toggle windows from Lua</a></h3>
+<pre><code class="language-lua">lush.windows.toggle("panel")
+lush.windows.set_visible("popup", true)
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="widgets"><a class="header" href="#widgets">widgets</a></h1>
+<h2 id="window"><a class="header" href="#window">window</a></h2>
+<p><code>lush.ui.window({...})</code></p>
+<ul>
+<li><code>name: string?</code> named windows are controllable from <code>lush.windows.*</code></li>
+<li><code>output: string|integer?</code> monitor selector (index/name/connector)</li>
+<li><code>visible: boolean</code> default <code>true</code></li>
+<li><code>layer: "background"|"bottom"|"top"|"overlay"</code> default <code>top</code></li>
+<li><code>exclusive: boolean</code> reserve layer-shell zone</li>
+<li><code>position: "top"|"bottom"|"left"|"right"</code> default <code>top</code> anchors</li>
+<li><code>anchor: string|{string,...}</code> explicit anchors override <code>position</code></li>
+<li><code>width: integer?</code></li>
+<li><code>height: integer?</code></li>
+<li><code>margin_top|margin_bottom|margin_left|margin_right: integer</code> default <code>0</code></li>
+<li><code>root: widget</code> required</li>
+</ul>
+<h2 id="common-widget"><a class="header" href="#common-widget">common widget</a></h2>
+<p>supported by all widget kinds:</p>
+<ul>
+<li><code>class: string</code></li>
+<li><code>classes: {string,...}</code></li>
+<li><code>visible: boolean</code></li>
+<li><code>visible_bind: string</code> signal key mapped to widget visibility</li>
+<li><code>width: integer</code></li>
+<li><code>height: integer</code></li>
+<li><code>hexpand: boolean</code></li>
+<li><code>vexpand: boolean</code></li>
+<li><code>halign: "fill"|"start"|"center"|"end"</code></li>
+<li><code>valign: "fill"|"start"|"center"|"end"</code></li>
+<li><code>class_bind: string</code> state key to map to css class</li>
+</ul>
+<p>state class example:</p>
+<pre><code class="language-lua">ui.label({
+  text = "net",
+  class_bind = "network.status",
+})
+</code></pre>
+<p>if <code>network.status = "down"</code>, widget gets css class <code>state-down</code>.</p>
+<p>visibility bind example:</p>
+<pre><code class="language-lua">ui.image({
+  bind = "notification.slot1.icon",
+  visible_bind = "notification.slot1.icon",
+})
+</code></pre>
+<p><code>visible_bind</code> value rules:</p>
+<ul>
+<li>false when signal is: empty string, <code>0</code>, <code>false</code>, <code>off</code>, <code>no</code>, <code>hidden</code></li>
+<li>true when signal is: <code>1</code>, <code>true</code>, <code>on</code>, <code>yes</code>, <code>visible</code>, <code>show</code></li>
+<li>any other non-empty value is treated as true</li>
+</ul>
+<h2 id="containers"><a class="header" href="#containers">containers</a></h2>
+<h3 id="hbox"><a class="header" href="#hbox"><code>hbox</code></a></h3>
+<ul>
+<li>fields: <code>children</code>, <code>spacing</code></li>
+</ul>
+<h3 id="vbox"><a class="header" href="#vbox"><code>vbox</code></a></h3>
+<ul>
+<li>fields: <code>children</code>, <code>spacing</code></li>
+</ul>
+<h3 id="centerbox"><a class="header" href="#centerbox"><code>centerbox</code></a></h3>
+<ul>
+<li>fields: <code>children</code>, <code>spacing</code></li>
+<li>only first 3 children are used: start/center/end.</li>
+<li>currently only horizontal!</li>
+</ul>
+<h3 id="scroll"><a class="header" href="#scroll"><code>scroll</code></a></h3>
+<ul>
+<li>fields: <code>children</code>, <code>h_policy</code>, <code>v_policy</code>, <code>overlay_scrolling</code>, <code>kinetic_scrolling</code>, <code>propagate_natural_width</code>, <code>propagate_natural_height</code>, <code>min_content_width</code>, <code>min_content_height</code></li>
+<li>only first child is used as scroll content.</li>
+<li>defaults:
+<ul>
+<li><code>h_policy = "automatic"</code></li>
+<li><code>v_policy = "automatic"</code></li>
+<li><code>overlay_scrolling = false</code></li>
+</ul>
+</li>
+<li>policy values for <code>h_policy</code>/<code>v_policy</code>:
+<ul>
+<li><code>automatic</code></li>
+<li><code>always</code></li>
+<li><code>never</code></li>
+<li><code>external</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="overlay"><a class="header" href="#overlay"><code>overlay</code></a></h3>
+<ul>
+<li>fields: <code>children</code></li>
+<li><code>children[1]</code> is base content.</li>
+<li><code>children[2..]</code> are layered on top as overlays.</li>
+</ul>
+<h3 id="revealer"><a class="header" href="#revealer"><code>revealer</code></a></h3>
+<ul>
+<li>fields: <code>children</code>, <code>reveal</code>, <code>reveal_bind</code>, <code>transition</code>, <code>duration</code></li>
+<li>only first child is used as revealer content.</li>
+<li>defaults:
+<ul>
+<li><code>reveal = true</code></li>
+<li><code>transition = "slide-down"</code></li>
+<li><code>duration = 250</code> (milliseconds)</li>
+</ul>
+</li>
+<li><code>reveal_bind</code> maps signal text to visible state using the same truthy/falsey rules as <code>visible_bind</code>.</li>
+<li>transition values:
+<ul>
+<li><code>none</code></li>
+<li><code>crossfade</code></li>
+<li><code>slide-right</code></li>
+<li><code>slide-left</code></li>
+<li><code>slide-up</code></li>
+<li><code>slide-down</code> (default)</li>
+</ul>
+</li>
+</ul>
+<h3 id="popover"><a class="header" href="#popover"><code>popover</code></a></h3>
+<ul>
+<li>fields: <code>children</code>, <code>position</code>, <code>autohide</code>, <code>has_arrow</code></li>
+<li><code>children[1]</code> is trigger widget; <code>children[2]</code> is popover content.</li>
+<li>extra children are ignored.</li>
+<li>defaults:
+<ul>
+<li><code>position = "bottom"</code></li>
+<li><code>autohide = true</code></li>
+<li><code>has_arrow = true</code></li>
+</ul>
+</li>
+<li><code>position</code> values: <code>top</code>, <code>bottom</code>, <code>left</code>, <code>right</code></li>
+</ul>
+<h2 id="content-widgets"><a class="header" href="#content-widgets">content widgets</a></h2>
+<h3 id="label"><a class="header" href="#label"><code>label</code></a></h3>
+<ul>
+<li>fields: <code>text</code>, <code>bind</code>, <code>binds</code>, <code>format</code>, <code>format_states</code>, <code>rules</code>, <code>on_click</code>, <code>max_chars</code>, <code>ellipsize</code></li>
+<li><code>on_click</code>: shell string, Lua function, or button map table.</li>
+<li>button map keys: <code>left</code>, <code>middle</code>, <code>right</code>, <code>wheel_up</code>, <code>wheel_down</code></li>
+<li><code>ellipsize</code>: <code>start</code>, <code>middle</code>, <code>end</code>, <code>none</code></li>
+<li>renders with Pango markup and supports rule-based styling and text transforms.</li>
+<li>placeholders: <code>{value}</code>, <code>{text}</code>, <code>{state}</code>, plus any key from <code>binds</code></li>
+<li>default format:
+<ul>
+<li>with <code>bind</code>: <code>{value}</code></li>
+<li>without <code>bind</code>: <code>{text}</code></li>
+</ul>
+</li>
+<li><code>format_states</code>: optional map by state value (usually from <code>class_bind</code>) and/or <code>default</code></li>
+<li>basics:
+<ul>
+<li>the format string is split into placeholder values (inside <code>{...}</code>) and literal chunks (plain text like <code>bat</code>, <code>%</code>, <code>(</code>, <code>)</code>).</li>
+<li>rules can target placeholder values (<code>target = "value"</code>), literals (<code>target = "literal"</code>), or both (<code>target = "any"</code>/unset).</li>
+<li>glob matching is supported in <code>match</code> and <code>token</code>: <code>*</code> = any sequence, <code>?</code> = single character.</li>
+<li>numeric filters (<code>min</code>/<code>max</code>) only apply when the matched text parses as a number.</li>
+</ul>
+</li>
+<li>each entry in <code>rules</code> is checked in order; all matching rules are merged, and later rules override earlier fields.</li>
+<li>rule filters:
+<ul>
+<li><code>target</code>: <code>value</code> (placeholder values), <code>literal</code> (plain words/symbols in format string), or <code>any</code> (default)</li>
+<li><code>token</code>: placeholder key glob filter (for <code>target = "value"</code>), supports <code>*</code> and <code>?</code></li>
+<li><code>match</code>: value/literal glob filter, supports <code>*</code> and <code>?</code></li>
+<li><code>min</code> / <code>max</code>: numeric filter for numeric values</li>
+</ul>
+</li>
+<li>style keys on each rule:
+<ul>
+<li><code>format</code>, <code>class</code>, <code>color</code>, <code>background</code>, <code>weight</code>, <code>style</code>, <code>underline</code>, <code>font</code>, <code>size</code>, <code>rise</code>, <code>alpha</code>, <code>strikethrough</code></li>
+</ul>
+</li>
+<li><code>format</code> on a rule transforms matched text before styling (supports <code>{value}</code>).</li>
+<li><code>class</code> on a rule applies CSS class(es) to matched text fragments (<code>class = "warn"</code> or <code>class = "warn pill"</code>).</li>
+</ul>
+<p>minimal example:</p>
+<pre><code class="language-lua">ui.label({
+  bind = "data.battery.percent",
+  format = "bat {value}%",
+  rules = {
+    { target = "literal", match = "bat", class = "label-prefix", color = "#928374", weight = "bold" },
+    { target = "value", token = "value", format = "{value}%" },
+    { target = "value", token = "value", max = 20, color = "#fb4934", weight = "bold" },
+  },
+})
+</code></pre>
+<p>example:</p>
+<pre><code class="language-lua">ui.label({
+  binds = {
+    ["battery.percent"] = "data.battery.percent",
+    ["battery.state"] = "data.battery.state",
+  },
+  format = "bat {battery.percent} ({battery.state})",
+  rules = {
+    { target = "literal", match = "bat", color = "#928374", weight = "bold" },
+    { target = "value", token = "battery.state", match = "charging", color = "#8ec07c", weight = "bold" },
+    { target = "value", token = "battery.state", match = "dis*", color = "#fabd2f", weight = "bold" },
+    { target = "value", token = "battery.state", match = "full", color = "#b8bb26", weight = "bold" },
+    { target = "value", token = "battery.percent", format = "{value}%" },
+    { target = "value", token = "battery.percent", max = 20, color = "#fb4934", weight = "bold" },
+    { target = "value", token = "battery.percent", min = 21, max = 40, color = "#fabd2f", weight = "bold" },
+    { target = "value", token = "battery.percent", min = 41, color = "#8ec07c" },
+  },
+})
+</code></pre>
+<h3 id="button"><a class="header" href="#button"><code>button</code></a></h3>
+<ul>
+<li>fields: <code>text</code>, <code>bind</code>, <code>format</code>, <code>format_states</code>, <code>on_click</code>, <code>angle</code></li>
+<li><code>on_click</code>: shell string, Lua function, or button map table.</li>
+<li>button map keys: <code>left</code>, <code>middle</code>, <code>right</code>, <code>wheel_up</code>, <code>wheel_down</code></li>
+<li>placeholders: <code>{text}</code>, <code>{value}</code>, <code>{state}</code></li>
+<li>default format: <code>{text}</code></li>
+<li><code>format_states</code>: optional map by state value (usually from <code>class_bind</code>) and/or <code>default</code></li>
+<li>special shell actions:
+<ul>
+<li><code>lush.notifications.delete:{index}</code></li>
+<li><code>lush.notifications.clear</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="clock"><a class="header" href="#clock"><code>clock</code></a></h3>
+<ul>
+<li>fields: <code>format</code>, <code>display_format</code>, <code>format_states</code>, <code>interval</code>, <code>bind</code>, <code>spacing</code>, <code>angle</code></li>
+<li>defaults:
+<ul>
+<li><code>format = "%a %d.%b %H:%M:%S"</code></li>
+<li><code>interval = 1</code> second</li>
+</ul>
+</li>
+<li><code>format</code> is the chrono/strftime pattern used to generate raw clock value.</li>
+<li>placeholders in <code>display_format</code>/<code>format_states</code>: <code>{value}</code>, <code>{time}</code>, <code>{state}</code></li>
+<li>default <code>display_format</code>: <code>{value}</code></li>
+<li><code>format_states</code>: optional map by state value (usually from <code>class_bind</code>) and/or <code>default</code></li>
+</ul>
+<h3 id="image"><a class="header" href="#image"><code>image</code></a></h3>
+<ul>
+<li>fields: <code>path</code>, <code>bind</code>, <code>fit</code>, <code>can_shrink</code>, <code>on_click</code></li>
+<li><code>on_click</code>: shell string, Lua function, or button map table.</li>
+<li>button map keys: <code>left</code>, <code>middle</code>, <code>right</code>, <code>wheel_up</code>, <code>wheel_down</code></li>
+<li><code>fit</code>: <code>contain</code> (default), <code>cover</code>, <code>fill</code>, <code>scale-down</code></li>
+<li>source resolution order:
+<ol>
+<li>explicit file/URI</li>
+<li>icon theme lookup by name</li>
+</ol>
+</li>
+</ul>
+<h3 id="progress"><a class="header" href="#progress"><code>progress</code></a></h3>
+<ul>
+<li>fields: <code>bind</code>, <code>value</code>, <code>min</code>, <code>max</code>, <code>inverted</code></li>
+<li>defaults:
+<ul>
+<li><code>min = 0</code></li>
+<li><code>max = 100</code></li>
+<li><code>value = min</code> (when <code>bind</code> has no signal value)</li>
+</ul>
+</li>
+<li><code>bind</code> should contain a numeric value.</li>
+<li>normalized fraction: <code>(value - min) / (max - min)</code>, clamped to <code>0..1</code>.</li>
+<li><code>inverted</code>: fills opposite direction when true</li>
+</ul>
+<h3 id="slider"><a class="header" href="#slider"><code>slider</code></a></h3>
+<ul>
+<li>fields: <code>bind</code>, <code>value</code>, <code>min</code>, <code>max</code>, <code>step</code>, <code>scroll_step</code>, <code>orientation</code>, <code>inverted</code>, <code>draw_value</code>, <code>digits</code></li>
+<li>defaults:
+<ul>
+<li><code>min = 0</code></li>
+<li><code>max = 100</code></li>
+<li><code>value = min</code> (when <code>bind</code> has no signal value)</li>
+<li><code>step = 1</code></li>
+<li><code>scroll_step = step</code></li>
+<li><code>orientation = "horizontal"</code></li>
+<li><code>draw_value = false</code></li>
+<li><code>digits = 0</code></li>
+</ul>
+</li>
+<li>reads initial value from <code>bind</code>, and writes back to the same key on user drag.</li>
+<li>mouse wheel changes slider value by <code>scroll_step</code> (up increases, down decreases).</li>
+<li><code>digits</code> controls numeric precision for emitted string values (<code>0..6</code>).</li>
+</ul>
+<h3 id="workspaces"><a class="header" href="#workspaces"><code>workspaces</code></a></h3>
+<ul>
+<li>fields: <code>count</code>, <code>active_only</code>, <code>all_outputs</code>, <code>output</code>, <code>orientation</code>, <code>spacing</code>, <code>format</code>, <code>format_states</code>, <code>labels</code>, <code>state_labels</code>, <code>format_icons</code>, <code>show_clients</code>, <code>clients_max_items</code>, <code>clients_icon_size</code>, <code>clients_rules</code>, <code>clients_use_glyphs</code>, <code>clients_glyph_fallback</code>, <code>clients_spacing</code>, <code>angle</code></li>
+<li><code>orientation</code>: <code>horizontal</code> (default) or <code>vertical</code></li>
+<li><code>count</code> clamped to <code>1..32</code></li>
+<li><code>active_only</code>: show only focused/occupied/urgent workspaces when true</li>
+<li><code>all_outputs</code>: include every output when true; otherwise uses selected/focused output</li>
+<li>placeholders in <code>format</code>/<code>format_states</code>: <code>{id}</code>, <code>{label}</code>, <code>{icon}</code>, <code>{clients}</code>, <code>{state}</code></li>
+<li><code>format_states</code>: optional map by state (<code>focused</code>, <code>occupied</code>, <code>unfocused</code>, <code>urgent</code>, <code>default</code>) overriding <code>format</code></li>
+<li><code>labels</code>: base label array by tag index</li>
+<li><code>state_labels</code>: optional map of state -&gt; label array by tag index</li>
+<li><code>format_icons</code>: optional icon map with fallback keys:
+<ul>
+<li><code>{id}.{state}</code> (example: <code>1.focused</code>)</li>
+<li><code>{state}</code> (example: <code>occupied</code>)</li>
+<li><code>{id}</code> (example: <code>3</code>)</li>
+<li><code>default</code></li>
+</ul>
+</li>
+<li>client rendering:
+<ul>
+<li><code>show_clients</code>: render per-workspace client widgets after the workspace label</li>
+<li><code>clients_max_items</code>: max clients per workspace (<code>1..16</code>, default <code>4</code>)</li>
+<li><code>clients_icon_size</code>: icon size for image mode (<code>8..64</code>, default <code>12</code>)</li>
+<li><code>clients_spacing</code>: spacing between rendered clients (<code>0..24</code>, default <code>2</code>)</li>
+<li><code>clients_use_glyphs</code>: when true, render rule icon values as glyph text; when false, render as icon/path sources</li>
+<li><code>clients_rules</code>: shared matching rules (<code>class</code>, <code>title</code>, <code>icon</code>, <code>text</code>) with <code>*</code>/<code>?</code> globs and last-match-wins behavior</li>
+<li><code>clients_glyph_fallback</code>: fallback glyph when no rule icon matches in glyph mode</li>
+</ul>
+</li>
+<li>styling hooks:
+<ul>
+<li><code>.workspace-clients</code> container for per-workspace clients</li>
+<li><code>.workspace-client-glyph</code> glyph client item</li>
+<li><code>.workspace-client-icon</code> icon client item</li>
+<li><code>.focused-client</code> added to the currently focused client item</li>
+</ul>
+</li>
+<li>backend note:
+<ul>
+<li>per-workspace client mapping is currently implemented for sway; other compositors may not populate workspace membership.</li>
+</ul>
+</li>
+</ul>
+<h3 id="dock"><a class="header" href="#dock"><code>dock</code></a></h3>
+<ul>
+<li>fields: <code>orientation</code>, <code>output</code>, <code>all_outputs</code>, <code>spacing</code>, <code>max_items</code>, <code>format</code>, <code>format_states</code>, <code>image_map</code>, <code>icon_size</code>, <code>on_click</code>, <code>angle</code></li>
+<li><code>orientation</code>: <code>horizontal</code> (default) or <code>vertical</code></li>
+<li><code>output</code>: optional output selector like workspaces</li>
+<li><code>all_outputs</code>: when true, ignores <code>output</code> and uses compositor-global focus stream</li>
+<li><code>max_items</code> clamped to <code>1..128</code></li>
+<li><code>image_map</code>: pattern map (<code>*</code> and <code>?</code>) -&gt; image source
+<ul>
+<li>value with <code>/</code> is treated as file path</li>
+<li>otherwise treated as icon-theme name</li>
+</ul>
+</li>
+<li>default render is icon-only; text is shown only when <code>format</code>/<code>format_states</code> is set</li>
+<li>placeholders in <code>format</code>/<code>format_states</code>:
+<ul>
+<li><code>{label}</code> default label (<code>{title}</code>)</li>
+<li><code>{title}</code> window title fallbacking to app id</li>
+<li><code>{class}</code> app class/app id</li>
+<li><code>{app_id}</code> compositor app id/class</li>
+<li><code>{identifier}</code> compositor identifier (when available)</li>
+<li><code>{index}</code> 1-based slot</li>
+<li><code>{state}</code> <code>focused</code> or <code>default</code></li>
+</ul>
+</li>
+<li><code>format_states</code> can override template for <code>focused</code> and <code>default</code></li>
+<li><code>icon_size</code>: icon/image pixel size, clamped to <code>8..128</code> (default <code>16</code>)</li>
+<li><code>on_click</code> accepts a string action or a table:
+<ul>
+<li>keys: <code>left</code>, <code>middle</code>, <code>right</code>, <code>wheel_up</code>, <code>wheel_down</code></li>
+<li>values: <code>none</code>, <code>activate</code>, <code>close</code>, <code>minimize</code>, <code>restore</code></li>
+<li>default behavior: <code>{ left = "activate" }</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="list"><a class="header" href="#list"><code>list</code></a></h3>
+<ul>
+<li>fields: <code>children</code>, <code>bind</code>, <code>count</code>, <code>spacing</code>, <code>orientation</code></li>
+<li><code>children[1]</code> is row template cloned for each item.</li>
+<li>template token expansion:
+<ul>
+<li><code>{item}</code> -&gt; e.g. <code>item.1</code> (or custom base + index)</li>
+<li><code>{slot}</code> -&gt; alias of <code>{item}</code></li>
+<li><code>{base}</code> -&gt; e.g. <code>item.</code></li>
+<li><code>{index}</code> -&gt; row index (<code>1</code>, <code>2</code>, …)</li>
+</ul>
+</li>
+<li>defaults:
+<ul>
+<li><code>bind = "item."</code></li>
+<li><code>count = 1</code> (clamped <code>1..256</code>)</li>
+<li><code>orientation = vertical</code></li>
+</ul>
+</li>
+<li>use <code>bind = "notification.slot"</code> and <code>visible_bind = "{item}.visible"</code> to render notification slots.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="signals"><a class="header" href="#signals">signals</a></h1>
+<p>all keys are string-based values on the shared signal bus.</p>
+<h2 id="window-visibility-keys"><a class="header" href="#window-visibility-keys">window visibility keys</a></h2>
+<p>written by runtime when named windows are shown/hidden:</p>
+<ul>
+<li><code>window.&lt;name&gt;.visible</code> -&gt; <code>"1"</code> or <code>"0"</code></li>
+</ul>
+<h2 id="notification-live-keys"><a class="header" href="#notification-live-keys">notification live keys</a></h2>
+<p>primary active notification mirror:</p>
+<ul>
+<li><code>notification.visible</code></li>
+<li><code>notification.id</code></li>
+<li><code>notification.app_name</code></li>
+<li><code>notification.summary</code></li>
+<li><code>notification.title</code></li>
+<li><code>notification.body</code></li>
+<li><code>notification.icon</code></li>
+<li><code>notification.urgency</code></li>
+<li><code>notification.urgency_name</code></li>
+<li><code>notification.changed</code> (incremented once per logical notification update)</li>
+<li><code>notification.active_count</code> (visible count in live stack)</li>
+<li><code>notification.history_count</code> (visible count in history stack)</li>
+</ul>
+<p>notification lifecycle event keys (last event snapshot):</p>
+<ul>
+<li><code>notification.event</code> (<code>pushed</code> | <code>closed</code> | <code>history_cleared</code> | <code>history_deleted</code>)</li>
+<li><code>notification.event_seq</code> (incremented per lifecycle event)</li>
+<li><code>notification.event.id</code></li>
+<li><code>notification.event.app_name</code></li>
+<li><code>notification.event.summary</code></li>
+<li><code>notification.event.title</code></li>
+<li><code>notification.event.body</code></li>
+<li><code>notification.event.icon</code></li>
+<li><code>notification.event.urgency</code></li>
+<li><code>notification.event.urgency_name</code></li>
+<li><code>notification.event.history_index</code> (<code>0</code> unless <code>history_deleted</code>)</li>
+</ul>
+<p>stack slots (<code>MAX_NOTIFICATION_SLOTS = 3</code>):</p>
+<ul>
+<li><code>notification.slot1.*</code></li>
+<li><code>notification.slot2.*</code></li>
+<li><code>notification.slot3.*</code></li>
+</ul>
+<p>each slot has:</p>
+<ul>
+<li><code>id</code>, <code>app_name</code>, <code>summary</code>, <code>title</code>, <code>body</code>, <code>icon</code>, <code>urgency</code>, <code>urgency_name</code>, <code>visible</code></li>
+</ul>
+<p>history slots (<code>MAX_HISTORY_SLOTS = 32</code>):</p>
+<ul>
+<li><code>notification.history1.*</code> … <code>notification.history32.*</code></li>
+</ul>
+<h2 id="notification-control-keys"><a class="header" href="#notification-control-keys">notification control keys</a></h2>
+<p>observed by notification runtime:</p>
+<ul>
+<li><code>notification.history_clear</code> or <code>notification.history.clear</code></li>
+<li><code>notification.history_delete</code> or <code>notification.history.delete</code></li>
+</ul>
+<p>trigger behavior:</p>
+<ul>
+<li>clear: clears all history</li>
+<li>delete: deletes one history row</li>
+</ul>
+<h2 id="data-providers-lushdata"><a class="header" href="#data-providers-lushdata">data providers (<code>lush.data</code>)</a></h2>
+<p><code>cpu</code> provider:</p>
+<ul>
+<li><code>data.cpu.percent</code></li>
+<li><code>data.cpu.state</code> (<code>normal</code> | <code>warn</code> | <code>critical</code>)</li>
+<li><code>data.cpu.user</code></li>
+<li><code>data.cpu.system</code></li>
+<li><code>data.cpu.idle</code></li>
+<li><code>data.cpu.total</code></li>
+</ul>
+<p><code>memory</code> provider:</p>
+<ul>
+<li><code>data.memory.percent</code></li>
+<li><code>data.memory.state</code> (<code>normal</code> | <code>warn</code> | <code>critical</code>)</li>
+<li><code>data.memory.total_mb</code></li>
+<li><code>data.memory.used_mb</code></li>
+<li><code>data.memory.available_mb</code></li>
+<li><code>data.memory.total_gb</code></li>
+<li><code>data.memory.used_gb</code></li>
+<li><code>data.memory.available_gb</code></li>
+</ul>
+<p><code>network</code> provider:</p>
+<ul>
+<li><code>data.network.down_bps</code></li>
+<li><code>data.network.up_bps</code></li>
+<li><code>data.network.down_kibps</code></li>
+<li><code>data.network.up_kibps</code></li>
+<li><code>data.network.iface</code> (<code>all</code> or requested interface name)</li>
+<li><code>data.network.state</code> (<code>idle</code> | <code>active</code>)</li>
+<li><code>data.network.down_total_bytes</code></li>
+<li><code>data.network.up_total_bytes</code></li>
+<li><code>data.network.ssid</code> (empty when unavailable/not Wi-Fi)</li>
+<li><code>data.network.wifi_strength_percent</code> (<code>0..100</code>, <code>0</code> when unavailable)</li>
+<li><code>data.network.wifi_signal_dbm</code> (empty when unavailable)</li>
+</ul>
+<p><code>disk</code> provider:</p>
+<ul>
+<li><code>data.disk.path</code></li>
+<li><code>data.disk.total_percent</code> (always <code>100</code>)</li>
+<li><code>data.disk.used_percent</code></li>
+<li><code>data.disk.free_percent</code></li>
+<li><code>data.disk.total_gb</code></li>
+<li><code>data.disk.used_gb</code></li>
+<li><code>data.disk.free_gb</code></li>
+<li><code>data.disk.total_bytes</code></li>
+<li><code>data.disk.used_bytes</code></li>
+<li><code>data.disk.free_bytes</code></li>
+</ul>
+<p><code>battery</code> provider:</p>
+<ul>
+<li><code>data.battery.percent</code></li>
+<li><code>data.battery.state</code> (<code>charging</code> | <code>discharging</code> | <code>full</code> | <code>unknown</code> | <code>unavailable</code>)</li>
+<li><code>data.battery.time_left_min</code></li>
+<li><code>data.battery.power_w</code></li>
+</ul>
+<p><code>audio</code> provider:</p>
+<ul>
+<li><code>data.audio.volume</code> (<code>0..150</code>)</li>
+<li><code>data.audio.muted</code> (<code>1</code> muted, <code>0</code> unmuted)</li>
+<li><code>data.audio.sink</code></li>
+</ul>
+<p><code>bluetooth</code> provider:</p>
+<ul>
+<li><code>data.bluetooth.available</code> (<code>1</code> when adapter exists, else <code>0</code>)</li>
+<li><code>data.bluetooth.powered</code> (<code>1</code> on, <code>0</code> off)</li>
+<li><code>data.bluetooth.connected_count</code></li>
+<li><code>data.bluetooth.connected_name</code> (first connected device alias/name)</li>
+<li><code>data.bluetooth.connected_address</code> (first connected device MAC)</li>
+<li><code>data.bluetooth.connected_battery_percent</code> (<code>0..100</code> when bluez <code>Battery1</code> is available)</li>
+<li><code>data.bluetooth.adapter</code> (adapter alias/name)</li>
+<li><code>data.bluetooth.state</code> (<code>unavailable</code> | <code>off</code> | <code>on</code> | <code>connected</code>)</li>
+<li><code>data.bluetooth.summary</code></li>
+</ul>
+<p><code>mpris</code> provider:</p>
+<ul>
+<li><code>data.mpris.available</code> (<code>1</code> when at least one MPRIS player exists, else <code>0</code>)</li>
+<li><code>data.mpris.player</code> (selected player identity)</li>
+<li><code>data.mpris.status</code> (<code>playing</code> | <code>paused</code> | <code>stopped</code> | <code>unknown</code>)</li>
+<li><code>data.mpris.title</code></li>
+<li><code>data.mpris.artist</code></li>
+<li><code>data.mpris.album</code></li>
+<li><code>data.mpris.art_url</code> (cover art URI/path)</li>
+<li><code>data.mpris.length_us</code> (track length in microseconds)</li>
+<li><code>data.mpris.position_us</code> (playback position in microseconds)</li>
+<li><code>data.mpris.summary</code></li>
+</ul>
+<p><code>compositor</code> provider:</p>
+<ul>
+<li><code>data.compositor.name</code></li>
+<li><code>data.compositor.summary</code></li>
+<li><code>data.compositor.focused_mask</code></li>
+<li><code>data.compositor.occupied_mask</code></li>
+<li><code>data.compositor.urgent_mask</code></li>
+<li><code>data.compositor.focused_workspace</code></li>
+<li><code>data.compositor.focused_window.title</code></li>
+<li><code>data.compositor.focused_window.app_id</code></li>
+<li><code>data.compositor.focused_window.workspace</code></li>
+</ul>
+<h2 id="state-and-signal-note"><a class="header" href="#state-and-signal-note">state and signal note</a></h2>
+<p><code>lush.state.set("x", "y")</code> and <code>lush.signal.emit("x", "y")</code> are equivalent, both write to the same runtime bus and dispatch watchers.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-c2a407aa.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>
