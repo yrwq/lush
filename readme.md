@@ -7,6 +7,8 @@ please use [examples](./examples) as a reference til [docs](https://yrwq.github.
 
 lightweight, extensible wayland shell and widget framework. it allows you to build completely custom bars, panels, and desktop widgets using lua.
 
+if you are curious about the motivation and design decisions, i wrote a [blog post](https://yrwq.github.io/blog/2026-02-lush) about it
+
 ---
 
 ## features
