@@ -21,12 +21,29 @@ pub fn load(path: &PathBuf) -> Result<LoadedConfig> {
 
     let cfg: Table = lua.globals().get(GLOBAL_CFG)?;
     let windows = parse_windows(&lua, &cfg)?;
-    let css = cfg.get("css").ok();
+    let css = cfg
+        .get::<String>("css")
+        .ok()
+        .map(|raw| resolve_config_relative_path(path, &raw));
 
     Ok(LoadedConfig {
         app: AppConfig { css, windows },
         runtime: Rc::new(LuaRuntime::new(lua, bridge)),
     })
+}
+
+fn resolve_config_relative_path(config_path: &Path, raw: &str) -> String {
+    let css_path = PathBuf::from(raw);
+    if css_path.is_absolute() {
+        return raw.to_string();
+    }
+
+    config_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .join(css_path)
+        .to_string_lossy()
+        .to_string()
 }
 
 fn initialize_lua_state(lua: &Lua, bridge: LuaStateBridge, config_path: &Path) -> Result<()> {
