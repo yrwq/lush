@@ -1,0 +1,569 @@
+:root {
+    --bg: #1d2021;
+    --bg-surface: #282828;
+    --bg-soft: #3c3836;
+    --accent: #dca561;
+    --fg: #d4be98;
+    --fg-muted: #a89984;
+    --danger: #fb4934;
+}
+
+* {
+    font-family: "Ioskeley Mono";
+    font-size: 14px;
+}
+
+window,
+.lush-window,
+.widget {
+    color: var(--fg);
+}
+
+.tags {
+    background: var(--bg-surface);
+}
+
+.focused-window {
+    background: var(--bg-surface);
+}
+
+.dock {
+    background: var(--bg-surface);
+    padding: 0 6px;
+}
+
+.dock-item {
+    padding: 0 6px;
+}
+
+.dock-item.focused {
+    background: var(--bg-soft);
+}
+
+.focused-window-icon {
+    background: var(--bg-surface);
+    padding: 0 4px 0 10px;
+}
+
+.focused-window-title {
+    background: var(--bg-surface);
+    padding: 0 8px 0 0;
+}
+
+.bar {
+    background: var(--bg);
+}
+
+.workspace-tag {
+    padding: 0 6px;
+    color: #3c3836;
+}
+
+.workspace-clients {
+    background: transparent;
+    padding: 0 6px;
+}
+
+.workspace-client-icon {
+    background: transparent;
+}
+
+.workspace-client-glyph {
+    background: transparent;
+    font-size: 16px;
+    padding: 0 2px;
+}
+
+.workspace-client-glyph.focused-client {
+    color: var(--accent);
+}
+
+.workspace-client-icon.focused-client {
+    background: var(--fg-muted);
+}
+
+.workspace-tag.occupied {
+    color: var(--fg);
+}
+
+.workspace-tag.focused {
+    color: var(--fg);
+    background: #3c3836;
+}
+
+.workspace-tag.urgent {
+    color: var(--danger);
+}
+
+.prefix {
+    padding: 0 6px;
+    background: var(--bg-soft);
+    color: var(--accent);
+}
+
+.wg {
+    padding: 0 6px;
+    background: var(--bg-surface);
+}
+
+.bt-value {
+    padding-right: 1px;
+}
+
+.bat-value {
+    padding-right: 6px;
+}
+
+.clock-popover {
+    padding: 0;
+    margin: 0;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: var(--bg-surface);
+}
+
+.clock-popover:hover,
+.clock-popover:active,
+.clock-popover:checked,
+.clock-popover:focus,
+.clock-popover:focus-visible {
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: var(--bg-soft);
+}
+
+.clock-trigger {
+    background: transparent;
+    border: none;
+}
+
+.quick-popover-surface,
+.quick-popover-surface contents,
+.quick-popover-surface viewport {
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.music-popover {
+    background: var(--bg);
+    border: 1px solid var(--bg-soft);
+    padding: 8px;
+    margin-top: 10px;
+}
+
+.music-head,
+.music-meta,
+.music-controls,
+.music-time-row {
+    background: transparent;
+}
+
+.music-cover {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-soft);
+}
+
+.music-title {
+    color: var(--fg);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.music-artist {
+    color: var(--fg-muted);
+    font-size: 12px;
+}
+
+.music-time {
+    color: var(--fg-muted);
+    font-size: 11px;
+}
+
+.music-btn {
+    min-width: 24px;
+    min-height: 24px;
+    padding: 0;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: var(--bg-surface);
+    color: var(--fg);
+    font-size: 12px;
+}
+
+.music-btn:hover,
+.music-btn:focus,
+.music-btn:focus-visible,
+.music-btn:active {
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: var(--bg-soft);
+}
+
+.music-btn.play {
+    color: var(--accent);
+}
+
+.music-seek {
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    min-height: 8px;
+}
+
+.music-seek trough {
+    background: var(--bg-soft);
+    min-height: 4px;
+    border: none;
+    box-shadow: none;
+}
+
+.music-seek highlight {
+    background: var(--accent);
+    min-height: 4px;
+    border: none;
+    box-shadow: none;
+}
+
+.music-seek slider,
+.music-seek > trough > slider {
+    min-width: 5px;
+    min-height: 5px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: var(--fg);
+}
+
+.notif {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-soft);
+    padding: 6px 4px 6px 8px;
+}
+
+.notif-title {
+    color: var(--accent);
+}
+
+.notif-body {
+    color: var(--fg-muted);
+}
+
+.notif-bell,
+.notif-clear-all {
+    padding: 0 6px;
+    background: var(--bg-surface);
+    color: var(--fg);
+    border: none;
+}
+
+.notif-bell:hover,
+.notif-clear-all:hover {
+    background: var(--bg-soft);
+}
+
+.control-center-toggle {
+    padding: 0 6px;
+    padding-right: 10px;
+    background: var(--bg-surface);
+    color: var(--fg);
+    border: none;
+}
+
+.control-center-toggle:hover {
+    background: var(--bg-soft);
+}
+
+.overlay-host {
+    background: transparent;
+}
+
+.overlay-dot {
+    color: var(--fg);
+    font-size: 9px;
+    padding: 0 1px 0 0;
+    margin-top: 1px;
+    background: transparent;
+}
+
+.control-center-panel {
+    background: var(--bg);
+    border: 1px solid var(--bg-soft);
+    padding: 8px;
+    min-height: 0;
+}
+
+.notif-history-title,
+.control-center-title {
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    background: transparent;
+}
+
+.control-center-kicker {
+    color: var(--fg-muted);
+    font-size: 14px;
+    letter-spacing: 0;
+    text-transform: none;
+    background: transparent;
+}
+
+.control-center-head {
+    padding: 2px 2px 4px 2px;
+    background: transparent;
+}
+
+.control-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-soft);
+    padding: 10px 10px 9px 10px;
+}
+
+.control-volume-row {
+    background: transparent;
+    min-height: 28px;
+}
+
+.control-value {
+    color: var(--fg);
+    font-weight: 700;
+    min-width: 42px;
+    background: transparent;
+}
+
+.control-slider {
+    background: transparent;
+    min-height: 12px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.control-slider trough {
+    background: var(--bg-soft);
+    min-height: 8px;
+    min-width: 120px;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+}
+
+.control-slider highlight {
+    background: var(--accent);
+    min-height: 8px;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+}
+
+.control-slider slider,
+.control-slider > trough > slider {
+    background: var(--fg);
+    min-width: 6px;
+    min-height: 8px;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    opacity: 1;
+    margin: 0;
+}
+
+.control-slider:focus,
+.control-slider:focus-within,
+.control-slider *:focus,
+.control-slider *:focus-visible {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.control-mute-button {
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0;
+    background: var(--bg-surface);
+    color: var(--fg);
+    border: none;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: none;
+    outline: none;
+}
+
+.control-mute-button:hover {
+    background: var(--bg-soft);
+}
+
+.control-mute-button:active {
+    background: var(--bg-soft);
+}
+
+.control-mute-button.state-1 {
+    background: var(--bg-soft);
+    color: var(--danger);
+}
+
+.control-mute-button.state-0 {
+    background: var(--bg-surface);
+    color: var(--fg);
+}
+
+.control-mute-button:focus,
+.control-mute-button:focus-visible,
+.control-mute-button:checked {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.notif-delete {
+    background: transparent;
+    border: none;
+}
+
+.notif-delete:hover,
+.notif-delete:active,
+.notif-delete:checked,
+.notif-delete:focus {
+    background: transparent;
+    background-image: none;
+    box-shadow: none;
+}
+
+.notif-stack,
+.notif-stack .notification-row,
+.notif-history-scroll,
+.notif-history-scroll > viewport,
+.notif-history-scroll > viewport > *,
+.notif-history-scroll > border,
+.notif-history-scroll frame,
+.notif-history-stack {
+    background: transparent;
+    background-image: none;
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.notif-history-scroll viewport,
+.notif-history-scroll viewport > *,
+.notif-history-scroll list,
+.notif-history-scroll row,
+.notif-history-scroll box,
+.notif-history-scroll frame,
+.notif-history-scroll border {
+    background: transparent;
+    background-color: transparent;
+    background-image: none;
+    border-color: transparent;
+    outline-color: transparent;
+    box-shadow: none;
+}
+
+.notif-history-scroll:focus,
+.notif-history-scroll:focus-within,
+.notif-history-scroll > viewport:focus,
+.notif-history-scroll > viewport:focus-within,
+.notif-history-scroll *:focus {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.notif-history-panel {
+    background: var(--bg);
+    border: 1px solid var(--bg-soft);
+    padding: 8px;
+}
+
+.notif-stack row,
+.notif-history-stack row,
+.notif-history-stack .notification-row,
+.notif-history-stack .notif,
+.notif-row-history {
+    background: var(--bg-surface);
+    background-image: none;
+}
+
+.notif-history-stack .notif {
+    margin: 0 0 8px 0;
+}
+
+.notif-history-stack .notif:last-child {
+    margin-bottom: 0;
+}
+
+.notif-history-scroll scrollbar,
+.notif-history-scroll scrollbar * {
+    background: transparent;
+}
+
+.notif-history-scroll scrollbar.vertical {
+    min-width: 10px;
+    margin-left: 6px;
+    background: var(--bg);
+    border: none;
+}
+
+.notif-history-scroll scrollbar.horizontal {
+    min-height: 10px;
+}
+
+.notif-history-scroll scrollbar trough {
+    background: var(--bg-surface);
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.notif-history-scroll scrollbar slider {
+    background: var(--fg-muted);
+    border: 1px solid var(--bg-soft);
+    min-width: 8px;
+    min-height: 24px;
+    outline: none;
+    box-shadow: none;
+}
+
+.notif-history-scroll scrollbar slider:hover {
+    background: var(--accent);
+}
+
+.notif-history-scroll scrollbar slider:active {
+    background: var(--accent);
+}
+
+.notif-history-scroll scrollbar junction,
+.notif-history-scroll junction,
+.notif-history-scroll separator {
+    background: transparent;
+    background-image: none;
+    border: none;
+    box-shadow: none;
+    color: transparent;
+}
+
+.notif-history-scroll undershoot.top,
+.notif-history-scroll undershoot.bottom,
+.notif-history-scroll overshoot.top,
+.notif-history-scroll overshoot.bottom {
+    background: transparent;
+}
+
+.state-critical {
+    border-color: var(--danger);
+}
