@@ -1,0 +1,280 @@
+html.ayu,
+html.coal,
+html.navy,
+html.rust,
+html.light {
+  --gb-bg: #32302f;
+  --gb-bg-soft: #3c3836;
+  --gb-bg-alt: #45403d;
+  --gb-fg: #ddc7a1;
+  --gb-fg-soft: #d4be98;
+  --gb-muted: #a89984;
+  --gb-red: #ea6962;
+  --gb-green: #a9b665;
+  --gb-yellow: #d8a657;
+  --gb-blue: #7daea3;
+  --gb-purple: #d3869b;
+  --gb-aqua: #89b482;
+  --gb-orange: #e78a4e;
+}
+
+html.ayu,
+html.coal,
+html.navy,
+html.rust,
+html.light,
+html:not(.js) {
+  --bg: var(--gb-bg);
+  --fg: var(--gb-fg);
+
+  --sidebar-bg: var(--gb-bg-soft);
+  --sidebar-fg: var(--gb-fg-soft);
+  --sidebar-non-existant: var(--gb-muted);
+  --sidebar-active: var(--gb-yellow);
+  --sidebar-spacer: var(--gb-bg-alt);
+
+  --scrollbar: var(--gb-muted);
+
+  --icons: var(--gb-muted);
+  --icons-hover: var(--gb-yellow);
+
+  --links: var(--gb-blue);
+  --inline-code-color: var(--gb-green);
+
+  --theme-popup-bg: var(--gb-bg-soft);
+  --theme-popup-border: var(--gb-bg-alt);
+  --theme-hover: var(--gb-bg-alt);
+
+  --quote-bg: var(--gb-bg-soft);
+  --quote-border: var(--gb-bg-alt);
+
+  --table-border-color: var(--gb-bg-alt);
+  --table-header-bg: var(--gb-bg-soft);
+  --table-alternate-bg: #3a3532;
+
+  --searchbar-border-color: var(--gb-bg-alt);
+  --searchbar-bg: var(--gb-bg-alt);
+  --searchbar-fg: var(--gb-fg);
+  --searchbar-shadow-color: var(--gb-blue);
+  --searchresults-header-fg: var(--gb-muted);
+  --searchresults-border-color: var(--gb-bg-alt);
+  --searchresults-li-bg: var(--gb-bg-soft);
+  --search-mark-bg: var(--gb-yellow);
+
+  --overlay-bg: rgba(50, 48, 47, 0.55);
+  --color-scheme: dark;
+}
+
+html.ayu body,
+html.coal body,
+html.navy body,
+html.rust body,
+html.light body {
+  background: var(--gb-bg);
+  color: var(--gb-fg);
+}
+
+html.ayu .content,
+html.coal .content,
+html.navy .content,
+html.rust .content,
+html.light .content {
+  color: var(--gb-fg);
+}
+
+html.ayu a,
+html.coal a,
+html.navy a,
+html.rust a,
+html.light a {
+  color: var(--gb-blue);
+}
+
+html.ayu a:hover,
+html.coal a:hover,
+html.navy a:hover,
+html.rust a:hover,
+html.light a:hover {
+  color: var(--gb-aqua);
+}
+
+html.ayu .sidebar,
+html.coal .sidebar,
+html.navy .sidebar,
+html.rust .sidebar,
+html.light .sidebar {
+  background: var(--gb-bg-soft);
+  border-right: 1px solid var(--gb-bg-alt);
+}
+
+html.ayu .sidebar a,
+html.coal .sidebar a,
+html.navy .sidebar a,
+html.rust .sidebar a,
+html.light .sidebar a {
+  color: var(--gb-fg-soft);
+}
+
+html.ayu .sidebar a:hover,
+html.coal .sidebar a:hover,
+html.navy .sidebar a:hover,
+html.rust .sidebar a:hover,
+html.light .sidebar a:hover,
+html.ayu .sidebar a.active,
+html.coal .sidebar a.active,
+html.navy .sidebar a.active,
+html.rust .sidebar a.active,
+html.light .sidebar a.active {
+  color: var(--gb-yellow);
+}
+
+html.ayu .menu-bar,
+html.coal .menu-bar,
+html.navy .menu-bar,
+html.rust .menu-bar,
+html.light .menu-bar {
+  background: var(--gb-bg-soft);
+  border-bottom: 1px solid var(--gb-bg-alt);
+}
+
+html.ayu .menu-bar .icon-button,
+html.coal .menu-bar .icon-button,
+html.navy .menu-bar .icon-button,
+html.rust .menu-bar .icon-button,
+html.light .menu-bar .icon-button {
+  color: var(--gb-muted);
+}
+
+html.ayu .menu-bar .icon-button:hover,
+html.coal .menu-bar .icon-button:hover,
+html.navy .menu-bar .icon-button:hover,
+html.rust .menu-bar .icon-button:hover,
+html.light .menu-bar .icon-button:hover {
+  color: var(--gb-yellow);
+}
+
+html.ayu h1,
+html.ayu h2,
+html.ayu h3,
+html.ayu h4,
+html.ayu h5,
+html.ayu h6,
+html.coal h1,
+html.coal h2,
+html.coal h3,
+html.coal h4,
+html.coal h5,
+html.coal h6,
+html.navy h1,
+html.navy h2,
+html.navy h3,
+html.navy h4,
+html.navy h5,
+html.navy h6,
+html.rust h1,
+html.rust h2,
+html.rust h3,
+html.rust h4,
+html.rust h5,
+html.rust h6,
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4,
+html.light h5,
+html.light h6 {
+  color: var(--gb-yellow);
+}
+
+html.ayu code,
+html.coal code,
+html.navy code,
+html.rust code,
+html.light code {
+  color: var(--gb-green);
+}
+
+html.ayu pre,
+html.coal pre,
+html.navy pre,
+html.rust pre,
+html.light pre,
+html.ayu pre code,
+html.coal pre code,
+html.navy pre code,
+html.rust pre code,
+html.light pre code {
+  background: var(--gb-bg-soft);
+  color: var(--gb-fg-soft);
+  border: 1px solid var(--gb-bg-alt);
+}
+
+html.ayu blockquote,
+html.coal blockquote,
+html.navy blockquote,
+html.rust blockquote,
+html.light blockquote {
+  border-left: 4px solid var(--gb-blue);
+  color: var(--gb-muted);
+}
+
+html.ayu table td,
+html.ayu table th,
+html.coal table td,
+html.coal table th,
+html.navy table td,
+html.navy table th,
+html.rust table td,
+html.rust table th,
+html.light table td,
+html.light table th {
+  border-color: var(--gb-bg-alt);
+}
+
+html.ayu table tr:nth-child(even),
+html.coal table tr:nth-child(even),
+html.navy table tr:nth-child(even),
+html.rust table tr:nth-child(even),
+html.light table tr:nth-child(even) {
+  background: rgba(69, 64, 61, 0.5);
+}
+
+html.ayu hr,
+html.coal hr,
+html.navy hr,
+html.rust hr,
+html.light hr {
+  border-color: var(--gb-bg-alt);
+}
+
+html.ayu .searchbar-outer input,
+html.coal .searchbar-outer input,
+html.navy .searchbar-outer input,
+html.rust .searchbar-outer input,
+html.light .searchbar-outer input {
+  background: var(--gb-bg-alt);
+  color: var(--gb-fg);
+  border: 1px solid var(--gb-bg-alt);
+}
+
+html.ayu .searchresults-header,
+html.coal .searchresults-header,
+html.navy .searchresults-header,
+html.rust .searchresults-header,
+html.light .searchresults-header,
+html.ayu .searchresults-outer li,
+html.coal .searchresults-outer li,
+html.navy .searchresults-outer li,
+html.rust .searchresults-outer li,
+html.light .searchresults-outer li {
+  border-color: var(--gb-bg-alt);
+}
+
+html.ayu ::selection,
+html.coal ::selection,
+html.navy ::selection,
+html.rust ::selection,
+html.light ::selection {
+  background: var(--gb-blue);
+  color: #1d2021;
+}
