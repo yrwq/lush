@@ -108,6 +108,8 @@ data providers:
 
 if you find a bug feel free to open an issue or even better make a pull request <3
 
+[contributing](docs/src/contributing.md)
+
 ---
 
 *lush is inspired by projects like [AGS](https://github.com/Aylur/ags), [Eww](https://github.com/elkowar/eww) and [quickshell](https://github.com/quickshell-mirror/quickshell)*
