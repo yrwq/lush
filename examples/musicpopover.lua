@@ -251,8 +251,8 @@ function M.create(opts)
       }),
       ui.vbox({
         class = "music-popover",
-        spacing = 8,
-        width = 264,
+        spacing = 4,
+        width = 268,
         children = {
           ui.hbox({
             class = "music-head",
@@ -261,9 +261,9 @@ function M.create(opts)
               ui.image({
                 class = "music-cover",
                 bind = "music.cover",
-                fit = "cover",
-                width = 44,
-                height = 44,
+                fit = "scale-down",
+                width = 80,
+                height = 60,
                 can_shrink = false,
               }),
               ui.vbox({
@@ -274,14 +274,14 @@ function M.create(opts)
                   ui.label({
                     class = "music-title",
                     bind = "music.title",
-                    max_chars = 25,
+                    max_chars = 26,
                     ellipsize = "end",
                     format = "{value}",
                   }),
                   ui.label({
                     class = "music-artist",
                     bind = "music.artist",
-                    max_chars = 28,
+                    max_chars = 30,
                     ellipsize = "end",
                     format = "{value}",
                   }),
@@ -300,20 +300,23 @@ function M.create(opts)
           }),
           ui.hbox({
             class = "music-time-row",
-            spacing = 0,
+            spacing = 4,
+            halign = "center",
             children = {
               ui.label({
                 class = "music-time",
                 bind = "music.position",
                 format = "{value}",
-                hexpand = true,
                 halign = "start",
+              }),
+              ui.label({
+                class = "music-time-sep",
+                text = "•",
               }),
               ui.label({
                 class = "music-time",
                 bind = "music.duration",
                 format = "{value}",
-                hexpand = true,
                 halign = "end",
               }),
             },

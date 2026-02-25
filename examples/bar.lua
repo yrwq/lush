@@ -20,6 +20,7 @@ local window_icon_rules = {
   { title = "*YouTube*", icon = "󰗃", text = "YouTube" },
   { class = "foot", icon = "" },
   { title = "*Yazi*", icon = "", text = "Files" },
+  { title = "*Discord*", icon = "", text = "Discord" },
 }
 
 lush.data.focused_window_iconify({
@@ -69,17 +70,20 @@ local bar_window = ui.window({
             clients_use_glyphs = true,
             clients_glyph_fallback = "",
           }),
-          ui.dock({
-            class = "dock",
-            max_items = 8,
-            icon_size = 18,
-            all_outputs = true,
-            on_click = {
-              left = "activate",
-              middle = "minimize",
-              right = "close",
-              wheel_down = "minimize",
-            },
+          -- ui.dock({
+          --   class = "dock",
+          --   max_items = 8,
+          --   icon_size = 18,
+          --   all_outputs = true,
+          --   on_click = {
+          --     left = "activate",
+          --     middle = "minimize",
+          --     right = "close",
+          --     wheel_down = "minimize",
+          --   },
+          -- }),
+          ui.label({
+            format = " ",
           }),
           ui.hbox({
             class = "focused-window",
@@ -206,14 +210,6 @@ local bar_window = ui.window({
             class = "overlay-host",
             children = {
               controls.toggle_button,
-              ui.label({
-                classes = { "overlay-dot", "wg" },
-                bind = "data.audio.muted",
-                format = "●",
-                visible_bind = "data.audio.muted",
-                halign = "end",
-                valign = "start",
-              }),
             },
           }),
           ui.overlay({
@@ -221,7 +217,7 @@ local bar_window = ui.window({
             children = {
               center.widgets.bell_button,
               ui.label({
-                classes = { "overlay-dot", "wg" },
+                class = "overlay-dot",
                 bind = "notification.history_count",
                 format = "{value}",
                 visible_bind = "notification.history_count",

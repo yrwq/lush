@@ -137,6 +137,19 @@ window,
 .clock-trigger {
     background: transparent;
     border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.clock-trigger:hover,
+.clock-trigger:active,
+.clock-trigger:checked,
+.clock-trigger:focus,
+.clock-trigger:focus-visible {
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
 }
 
 .quick-popover-surface,
@@ -151,8 +164,10 @@ window,
 .music-popover {
     background: var(--bg);
     border: 1px solid var(--bg-soft);
+    border-radius: 2px;
     padding: 8px;
     margin-top: 10px;
+    min-width: 268px;
 }
 
 .music-head,
@@ -165,6 +180,7 @@ window,
 .music-cover {
     background: var(--bg-surface);
     border: 1px solid var(--bg-soft);
+    border-radius: 2px;
 }
 
 .music-title {
@@ -183,22 +199,33 @@ window,
     font-size: 11px;
 }
 
+.music-time-row {
+    padding: 1px 0 0 0;
+}
+
+.music-time-sep {
+    color: var(--fg-muted);
+    font-size: 9px;
+}
+
 .music-btn {
-    min-width: 24px;
-    min-height: 24px;
+    min-width: 26px;
+    min-height: 26px;
     padding: 0;
     border: none;
     outline: none;
     box-shadow: none;
     background: var(--bg-surface);
     color: var(--fg);
+    border-radius: 2px;
     font-size: 12px;
 }
 
 .music-btn:hover,
 .music-btn:focus,
 .music-btn:focus-visible,
-.music-btn:active {
+.music-btn:active,
+.music-btn:checked {
     border: none;
     outline: none;
     box-shadow: none;
@@ -206,6 +233,8 @@ window,
 }
 
 .music-btn.play {
+    background: var(--bg-soft);
+    border: none;
     color: var(--accent);
 }
 
@@ -214,13 +243,14 @@ window,
     border: none;
     outline: none;
     box-shadow: none;
-    min-height: 8px;
+    min-height: 7px;
 }
 
 .music-seek trough {
     background: var(--bg-soft);
     min-height: 4px;
     border: none;
+    border-radius: 999px;
     box-shadow: none;
 }
 
@@ -228,13 +258,14 @@ window,
     background: var(--accent);
     min-height: 4px;
     border: none;
+    border-radius: 999px;
     box-shadow: none;
 }
 
 .music-seek slider,
 .music-seek > trough > slider {
-    min-width: 5px;
-    min-height: 5px;
+    min-width: 6px;
+    min-height: 6px;
     margin: 0;
     padding: 0;
     border: none;
@@ -259,15 +290,26 @@ window,
 
 .notif-bell,
 .notif-clear-all {
-    padding: 0 6px;
+    padding: 0 10px;
     background: var(--bg-surface);
     color: var(--fg);
     border: none;
 }
 
 .notif-bell:hover,
-.notif-clear-all:hover {
-    background: var(--bg-soft);
+.notif-bell:active,
+.notif-bell:checked,
+.notif-bell:focus,
+.notif-bell:focus-visible,
+.notif-clear-all:hover,
+.notif-clear-all:active,
+.notif-clear-all:checked,
+.notif-clear-all:focus,
+.notif-clear-all:focus-visible {
+    background: var(--bg-surface);
+    border: none;
+    outline: none;
+    box-shadow: none;
 }
 
 .control-center-toggle {
@@ -279,7 +321,17 @@ window,
 }
 
 .control-center-toggle:hover {
-    background: var(--bg-soft);
+    background: var(--bg-surface);
+}
+
+.control-center-toggle:active,
+.control-center-toggle:checked,
+.control-center-toggle:focus,
+.control-center-toggle:focus-visible {
+    background: var(--bg-surface);
+    border: none;
+    outline: none;
+    box-shadow: none;
 }
 
 .overlay-host {
@@ -288,7 +340,7 @@ window,
 
 .overlay-dot {
     color: var(--fg);
-    font-size: 9px;
+    font-size: 10px;
     padding: 0 1px 0 0;
     margin-top: 1px;
     background: transparent;

@@ -3,9 +3,11 @@
 > [!WARNING]
 > lush is in a very early phase, expect breaking changes or incomplete docs
 
-please use [examples](./examples) as a reference til [docs](https://yrwq.github.io/lush) are ready
+lightweight, extensible wayland shell and widget framework. build completely custom bars, panels, and desktop widgets using lua.
 
-lightweight, extensible wayland shell and widget framework. it allows you to build completely custom bars, panels, and desktop widgets using lua.
+![preview](https://github.com/user-attachments/assets/1426008f-db10-4229-b508-0f88b395549f)
+
+please use [examples](./examples) as a reference til [docs](https://yrwq.github.io/lush) are ready
 
 if you are curious about the motivation and design decisions, i wrote a [blog post](https://yrwq.github.io/blog/2026-02-lush) about it
 
