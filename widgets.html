@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "ayu";
             const default_dark_theme = "ayu";
-            window.path_to_searchindex_js = "searchindex-2ee0de41.js";
+            window.path_to_searchindex_js = "searchindex-ffd1b501.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-16b21114.js"></script>
@@ -531,6 +531,32 @@
 <li>keys: <code>left</code>, <code>middle</code>, <code>right</code>, <code>wheel_up</code>, <code>wheel_down</code></li>
 <li>values: <code>none</code>, <code>activate</code>, <code>close</code>, <code>minimize</code>, <code>restore</code></li>
 <li>default behavior: <code>{ left = "activate" }</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="tray"><a class="header" href="#tray"><code>tray</code></a></h3>
+<ul>
+<li>fields: <code>orientation</code>, <code>spacing</code>, <code>icon_size</code>, <code>max_items</code>, <code>show_passive</code>, <code>hide_when_empty</code></li>
+<li><code>orientation</code>: <code>horizontal</code> (default) or <code>vertical</code></li>
+<li><code>spacing</code>: gap between tray items (default <code>6</code>)</li>
+<li><code>icon_size</code>: icon pixel size, clamped to <code>8..128</code> (default <code>16</code>)</li>
+<li><code>max_items</code>: max displayed items, clamped to <code>1..256</code> (default <code>32</code>)</li>
+<li><code>show_passive</code>: include passive items when true (default <code>true</code>)</li>
+<li><code>hide_when_empty</code>: hides tray widget when it has no rendered items (default <code>true</code>)</li>
+<li>click behavior:
+<ul>
+<li>left click -&gt; <code>Activate(x, y)</code></li>
+<li>middle click -&gt; <code>SecondaryActivate(x, y)</code></li>
+<li>right click -&gt; internal DBusMenu popover when available, else <code>ContextMenu(x, y)</code></li>
+<li>wheel -&gt; <code>Scroll(delta, "vertical")</code></li>
+</ul>
+</li>
+<li>styling hooks:
+<ul>
+<li><code>.tray-container</code></li>
+<li><code>.tray-item</code></li>
+<li><code>.tray-icon</code></li>
+<li><code>.tray-active</code>, <code>.tray-passive</code>, <code>.tray-needsattention</code></li>
 </ul>
 </li>
 </ul>
