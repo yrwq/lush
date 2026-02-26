@@ -42,14 +42,12 @@ fn resolve_config_relative_path(config_path: &Path, raw: &str) -> String {
         return css_path.to_string_lossy().to_string();
     }
 
-    let joined = config_path
+    config_path
         .parent()
         .unwrap_or_else(|| Path::new("."))
         .join(css_path)
         .to_string_lossy()
-        .to_string();
-
-    joined
+        .to_string()
 }
 
 fn initialize_lua_state(lua: &Lua, bridge: LuaStateBridge, config_path: &Path) -> Result<()> {
@@ -102,7 +100,7 @@ fn run_config_script(lua: &Lua, path: &PathBuf) -> Result<()> {
 pub fn find_config() -> PathBuf {
     let mut candidates: Vec<PathBuf> = Vec::new();
 
-    if let Some(raw) = std::env::var("LUSH_CONFIG").ok() {
+    if let Ok(raw) = std::env::var("LUSH_CONFIG") {
         let path = PathBuf::from(raw);
         if path.extension().is_some() {
             candidates.push(path);
@@ -111,12 +109,12 @@ pub fn find_config() -> PathBuf {
         }
     }
 
-    if let Some(base) = std::env::var("XDG_CONFIG_HOME").ok() {
+    if let Ok(base) = std::env::var("XDG_CONFIG_HOME") {
         let dir = PathBuf::from(base).join("lush");
         candidates.push(dir.join("init.lua"));
     }
 
-    if let Some(home) = std::env::var("HOME").ok() {
+    if let Ok(home) = std::env::var("HOME") {
         let dir = PathBuf::from(home).join(".config").join("lush");
         candidates.push(dir.join("init.lua"));
     }

@@ -6,6 +6,8 @@ use std::time::Duration;
 
 use mlua::{Function, Lua, Result};
 
+const SCHEDULER_SHUTDOWN_FN: &str = "_lush_scheduler_shutdown";
+
 pub fn install(lua: &Lua) -> Result<()> {
     let timer_seq = Rc::new(AtomicU64::new(1));
     let timers: Rc<RefCell<HashMap<u64, glib::SourceId>>> = Rc::new(RefCell::new(HashMap::new()));
@@ -48,10 +50,24 @@ pub fn install(lua: &Lua) -> Result<()> {
         })?,
     )?;
 
+    let cancel_timers = timers.clone();
     lua.globals().set(
         "_lush_scheduler_cancel",
         lua.create_function(move |_, id: u64| {
-            if let Some(source) = timers.borrow_mut().remove(&id) {
+            if let Some(source) = cancel_timers.borrow_mut().remove(&id) {
+                source.remove();
+            }
+            Ok(())
+        })?,
+    )?;
+
+    let shutdown_timers = timers.clone();
+    lua.globals().set(
+        SCHEDULER_SHUTDOWN_FN,
+        lua.create_function(move |_, ()| {
+            let sources: Vec<glib::SourceId> =
+                shutdown_timers.borrow_mut().drain().map(|v| v.1).collect();
+            for source in sources {
                 source.remove();
             }
             Ok(())

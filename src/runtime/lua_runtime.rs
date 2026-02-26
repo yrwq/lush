@@ -11,6 +11,7 @@ use super::signal_bus::SignalBus;
 
 const CALLBACKS_GLOBAL: &str = "__callbacks";
 const LUSH_DISPATCH_FN: &str = "__lush_dispatch";
+const SCHEDULER_SHUTDOWN_FN: &str = "_lush_scheduler_shutdown";
 
 #[derive(Clone, Debug)]
 pub enum AppCommand {
@@ -343,6 +344,9 @@ impl LuaRuntime {
 
 impl Drop for LuaRuntime {
     fn drop(&mut self) {
+        if let Ok(shutdown) = self.lua.globals().get::<Function>(SCHEDULER_SHUTDOWN_FN) {
+            let _ = shutdown.call::<()>(());
+        }
         self.bridge.shutdown();
     }
 }

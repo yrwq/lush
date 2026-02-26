@@ -165,16 +165,8 @@ fn reload_config_in_process(
 ) -> Result<(), String> {
     let loaded =
         config::load(&state.config_path).map_err(|err| format!("config reload failed: {}", err))?;
-    close_all_windows(app);
-    let session = ui::build_windows(app, &loaded);
-    state.session = session;
+    ui::reconfigure_windows(app, &mut state.session, &loaded.app);
     Ok(())
-}
-
-fn close_all_windows(app: &Application) {
-    for window in app.windows() {
-        window.close();
-    }
 }
 
 fn run_client(command: &Command) -> Result<(), String> {
@@ -186,12 +178,7 @@ fn run_client(command: &Command) -> Result<(), String> {
         ipc::control::BUS_PATH,
         ipc::control::BUS_INTERFACE,
     )
-    .map_err(|err| {
-        format!(
-            "daemon not reachable; start `lush daemon` first ({})",
-            err
-        )
-    })?;
+    .map_err(|err| format!("daemon not reachable; start `lush daemon` first ({})", err))?;
 
     match command {
         Command::Daemon => {}

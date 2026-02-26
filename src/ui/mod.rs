@@ -4,4 +4,4 @@ mod signal_watch;
 mod style;
 mod widgets;
 
-pub use app::{UiSession, build_windows};
+pub use app::{UiSession, build_windows, reconfigure_windows};

@@ -16,20 +16,17 @@ pub(super) fn wire_app_commands(
 ) {
     let windows = windows.clone();
     let bus = bus.clone();
-    let runtime_for_cb = runtime.clone();
+    let runtime_weak = Rc::downgrade(&runtime);
     runtime.subscribe_app_commands(move |cmd| {
+        let Some(runtime) = runtime_weak.upgrade() else {
+            return false;
+        };
         match cmd {
-            AppCommand::Open(name) => {
-                open_named_window(runtime_for_cb.as_ref(), &bus, &windows, name)
-            }
-            AppCommand::Close(name) => {
-                close_named_window(runtime_for_cb.as_ref(), &bus, &windows, name)
-            }
-            AppCommand::Toggle(name) => {
-                toggle_named_window(runtime_for_cb.as_ref(), &bus, &windows, name)
-            }
+            AppCommand::Open(name) => open_named_window(runtime.as_ref(), &bus, &windows, name),
+            AppCommand::Close(name) => close_named_window(runtime.as_ref(), &bus, &windows, name),
+            AppCommand::Toggle(name) => toggle_named_window(runtime.as_ref(), &bus, &windows, name),
             AppCommand::SetVisible(name, visible) => {
-                set_named_window_visible(runtime_for_cb.as_ref(), &bus, &windows, name, *visible)
+                set_named_window_visible(runtime.as_ref(), &bus, &windows, name, *visible)
             }
         }
         true
@@ -37,7 +34,11 @@ pub(super) fn wire_app_commands(
 }
 
 pub(super) fn wire_lua_signal_dispatch(bus: &SignalBus, runtime: Rc<LuaRuntime>) {
+    let runtime_weak = Rc::downgrade(&runtime);
     bus.subscribe(move |event| {
+        let Some(runtime) = runtime_weak.upgrade() else {
+            return false;
+        };
         if let Err(err) = runtime.dispatch_signal(&event.name, &event.value) {
             log::warn!("lush signal callback failed: {}", err);
         }

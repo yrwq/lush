@@ -6,7 +6,7 @@ use gtk4::prelude::*;
 use gtk4::{Application, ApplicationWindow};
 use gtk4_layer_shell::{Edge, Layer, LayerShell, is_supported};
 
-use crate::config::{LoadedConfig, WidgetConfig, WidgetKind, WindowConfig};
+use crate::config::{AppConfig, LoadedConfig, WidgetConfig, WidgetKind, WindowConfig};
 use crate::runtime::notifications;
 use crate::runtime::signal_bus::SignalBus;
 use crate::ui::monitor;
@@ -52,7 +52,85 @@ pub fn build_windows(app: &Application, cfg: &LoadedConfig) -> UiSession {
 
     UiSession {
         runtime: cfg.runtime.clone(),
+        bus,
+        windows,
         style,
+    }
+}
+
+pub fn reconfigure_windows(app: &Application, session: &mut UiSession, app_cfg: &AppConfig) {
+    if app_cfg.windows.iter().any(|w| w.name.is_none()) {
+        log::warn!("reconfigure: unnamed windows are ignored; use named windows for live config");
+    }
+
+    session.style.set_path(app_cfg.css.as_deref());
+    if let Err(err) = session.style.reload() {
+        log::warn!("reconfigure: css reload failed: {}", err);
+    }
+
+    let desired_named: HashMap<String, &WindowConfig> = app_cfg
+        .windows
+        .iter()
+        .filter_map(|cfg| cfg.name.as_ref().map(|name| (name.clone(), cfg)))
+        .collect();
+
+    let existing_names: Vec<String> = session.windows.borrow().keys().cloned().collect();
+    for name in existing_names {
+        if desired_named.contains_key(&name) {
+            continue;
+        }
+        if let Some(window) = session.windows.borrow_mut().remove(&name) {
+            window.close();
+            control::publish_window_visibility(
+                session.runtime.as_ref(),
+                &session.bus,
+                Some(&name),
+                false,
+            );
+        }
+    }
+
+    let loaded_for_new = LoadedConfig {
+        app: app_cfg.clone(),
+        runtime: session.runtime.clone(),
+    };
+
+    for (name, window_cfg) in desired_named {
+        if let Some(window) = session.windows.borrow().get(&name).cloned() {
+            apply_window_config(&window, window_cfg);
+            if window_cfg.visible {
+                window.present();
+            } else {
+                window.set_visible(false);
+            }
+            control::publish_window_visibility(
+                session.runtime.as_ref(),
+                &session.bus,
+                Some(&name),
+                window.is_visible(),
+            );
+            continue;
+        }
+
+        let window = build_window(
+            app,
+            window_cfg,
+            &session.bus,
+            &session.windows,
+            &loaded_for_new,
+        );
+        control::register_window_if_named(&window, window_cfg, &session.windows);
+        if window_cfg.visible {
+            window.present();
+        } else {
+            window.set_visible(false);
+        }
+        control::publish_window_visibility(
+            session.runtime.as_ref(),
+            &session.bus,
+            window_cfg.name.as_deref(),
+            window.is_visible(),
+        );
     }
 }
 
@@ -111,15 +189,24 @@ fn build_window(
         .build();
     window.add_css_class("lush-window");
 
-    if is_supported() {
-        configure_layer_shell_window(&window, window_cfg);
-    } else {
-        configure_fallback_window(&window, window_cfg);
-    }
+    apply_window_config(&window, window_cfg);
 
     let root = build_window_root(window_cfg, bus, windows, loaded);
     window.set_child(Some(&root));
     window
+}
+
+fn apply_window_config(window: &ApplicationWindow, window_cfg: &WindowConfig) {
+    window.set_title(Some(window_cfg.name.as_deref().unwrap_or("lush")));
+    if is_supported() {
+        configure_layer_shell_window(window, window_cfg);
+    } else {
+        configure_fallback_window(window, window_cfg);
+    }
+    if let Some(root) = window.child() {
+        root.set_width_request(window_cfg.width.unwrap_or(-1));
+        root.set_height_request(window_cfg.height.unwrap_or(-1));
+    }
 }
 
 fn build_window_root(
@@ -160,6 +247,8 @@ fn configure_layer_shell_window(window: &ApplicationWindow, window_cfg: &WindowC
 
     if window_cfg.exclusive {
         window.set_exclusive_zone(exclusive_zone_for(window_cfg));
+    } else {
+        window.set_exclusive_zone(0);
     }
 
     apply_margins(window, window_cfg);

@@ -39,6 +39,10 @@ impl StyleManager {
         self.provider.load_from_string(&css);
         Ok(())
     }
+
+    pub fn set_path(&mut self, path: Option<&str>) {
+        self.css_path = path.map(PathBuf::from);
+    }
 }
 
 impl Drop for StyleManager {

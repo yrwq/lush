@@ -1,5 +1,9 @@
 use async_channel::Receiver;
+use async_channel::Sender;
+use once_cell::sync::OnceCell;
 use serde_json::Value;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use std::thread;
 
 use super::ipc::{
@@ -8,49 +12,105 @@ use super::ipc::{
 use super::tree::{node_app_id, node_title};
 use crate::runtime::compositor::ToplevelEntry;
 
+struct ToplevelService {
+    listeners: Arc<Mutex<Vec<Sender<Vec<ToplevelEntry>>>>>,
+    latest: Arc<Mutex<Option<Vec<ToplevelEntry>>>>,
+}
+
+static TOPLEVEL_SERVICES: OnceCell<Mutex<HashMap<String, Arc<ToplevelService>>>> = OnceCell::new();
+
 pub(super) fn subscribe(output_selector: Option<&str>) -> Option<Receiver<Vec<ToplevelEntry>>> {
     if !super::available() {
         return None;
     }
 
-    let selector = output_selector.map(str::to_string);
+    let key = output_selector
+        .map(str::trim)
+        .filter(|v| !v.is_empty())
+        .unwrap_or("")
+        .to_string();
+    let selector = (!key.is_empty()).then_some(key.clone());
+    let service = toplevel_service_for_key(&key, selector)?;
+
     let (tx, rx) = async_channel::unbounded();
-    thread::Builder::new()
-        .name("sway-toplevels-listener".to_string())
-        .spawn(move || {
-            let mut event_stream = match subscribe_events(["workspace", "window"]) {
-                Some(v) => v,
-                None => return,
-            };
-            let mut last: Option<Vec<ToplevelEntry>> = None;
-
-            if let Some(snapshot) = collect_toplevels(selector.as_deref()) {
-                last = Some(snapshot.clone());
-                if tx.send_blocking(snapshot).is_err() {
-                    return;
-                }
-            }
-
-            loop {
-                if read_message(&mut event_stream).is_err() {
-                    break;
-                }
-
-                let Some(snapshot) = collect_toplevels(selector.as_deref()) else {
-                    continue;
-                };
-
-                if last.as_ref() != Some(&snapshot) {
-                    last = Some(snapshot.clone());
-                    if tx.send_blocking(snapshot).is_err() {
-                        break;
-                    }
-                }
-            }
-        })
-        .ok()?;
+    if let Ok(mut listeners) = service.listeners.lock() {
+        listeners.push(tx.clone());
+    }
+    if let Ok(latest) = service.latest.lock()
+        && let Some(snapshot) = latest.clone()
+    {
+        let _ = tx.try_send(snapshot);
+    }
 
     Some(rx)
+}
+
+fn toplevel_service_for_key(key: &str, selector: Option<String>) -> Option<Arc<ToplevelService>> {
+    let services = TOPLEVEL_SERVICES.get_or_init(|| Mutex::new(HashMap::new()));
+    let mut services = services.lock().ok()?;
+    if let Some(existing) = services.get(key) {
+        return Some(existing.clone());
+    }
+
+    let created = ToplevelService::start(selector)?;
+    services.insert(key.to_string(), created.clone());
+    Some(created)
+}
+
+impl ToplevelService {
+    fn start(selector: Option<String>) -> Option<Arc<Self>> {
+        let listeners: Arc<Mutex<Vec<Sender<Vec<ToplevelEntry>>>>> =
+            Arc::new(Mutex::new(Vec::new()));
+        let latest: Arc<Mutex<Option<Vec<ToplevelEntry>>>> = Arc::new(Mutex::new(None));
+        let listeners_for_thread = listeners.clone();
+        let latest_for_thread = latest.clone();
+
+        thread::Builder::new()
+            .name("sway-toplevels-listener".to_string())
+            .spawn(move || {
+                let mut event_stream = match subscribe_events(["workspace", "window"]) {
+                    Some(v) => v,
+                    None => return,
+                };
+                let selector = selector.as_deref();
+
+                if let Some(snapshot) = collect_toplevels(selector) {
+                    publish_snapshot(&listeners_for_thread, &latest_for_thread, snapshot);
+                }
+
+                loop {
+                    if read_message(&mut event_stream).is_err() {
+                        break;
+                    }
+
+                    let Some(snapshot) = collect_toplevels(selector) else {
+                        continue;
+                    };
+
+                    publish_snapshot(&listeners_for_thread, &latest_for_thread, snapshot);
+                }
+            })
+            .ok()?;
+
+        Some(Arc::new(Self { listeners, latest }))
+    }
+}
+
+fn publish_snapshot(
+    listeners: &Arc<Mutex<Vec<Sender<Vec<ToplevelEntry>>>>>,
+    latest: &Arc<Mutex<Option<Vec<ToplevelEntry>>>>,
+    snapshot: Vec<ToplevelEntry>,
+) {
+    if let Ok(mut stored) = latest.lock() {
+        if stored.as_ref() == Some(&snapshot) {
+            return;
+        }
+        *stored = Some(snapshot.clone());
+    }
+
+    if let Ok(mut refs) = listeners.lock() {
+        refs.retain(|tx| tx.try_send(snapshot.clone()).is_ok());
+    }
 }
 
 fn collect_toplevels(output_selector: Option<&str>) -> Option<Vec<ToplevelEntry>> {
