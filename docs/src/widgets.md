@@ -290,6 +290,25 @@ ui.label({
   - values: `none`, `activate`, `close`, `minimize`, `restore`
   - default behavior: `{ left = "activate" }`
 
+### `tray`
+- fields: `orientation`, `spacing`, `icon_size`, `max_items`, `show_passive`, `hide_when_empty`
+- `orientation`: `horizontal` (default) or `vertical`
+- `spacing`: gap between tray items (default `6`)
+- `icon_size`: icon pixel size, clamped to `8..128` (default `16`)
+- `max_items`: max displayed items, clamped to `1..256` (default `32`)
+- `show_passive`: include passive items when true (default `true`)
+- `hide_when_empty`: hides tray widget when it has no rendered items (default `true`)
+- click behavior:
+  - left click -> `Activate(x, y)`
+  - middle click -> `SecondaryActivate(x, y)`
+  - right click -> internal DBusMenu popover when available, else `ContextMenu(x, y)`
+  - wheel -> `Scroll(delta, "vertical")`
+- styling hooks:
+  - `.tray-container`
+  - `.tray-item`
+  - `.tray-icon`
+  - `.tray-active`, `.tray-passive`, `.tray-needsattention`
+
 ### `list`
 - fields: `children`, `bind`, `count`, `spacing`, `orientation`
 - `children[1]` is row template cloned for each item.

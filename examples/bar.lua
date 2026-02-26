@@ -226,6 +226,13 @@ local bar_window = ui.window({
               }),
             },
           }),
+          ui.tray({
+            class = "tray",
+            orientation = "horizontal",
+            spacing = 6,
+            icon_size = 16,
+            show_passive = true,
+          })
         }
       }),
     }),

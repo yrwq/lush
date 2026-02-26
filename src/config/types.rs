@@ -38,6 +38,7 @@ pub enum WidgetKind {
     Clock,
     Workspaces,
     Dock,
+    Tray,
     Image,
     Progress,
     Slider,
@@ -59,6 +60,7 @@ impl WidgetKind {
             "clock" => Some(Self::Clock),
             "workspaces" => Some(Self::Workspaces),
             "dock" => Some(Self::Dock),
+            "tray" => Some(Self::Tray),
             "image" => Some(Self::Image),
             "progress" => Some(Self::Progress),
             "slider" => Some(Self::Slider),
@@ -81,6 +83,7 @@ impl WidgetKind {
             Self::Clock => "clock",
             Self::Workspaces => "workspaces",
             Self::Dock => "dock",
+            Self::Tray => "tray",
             Self::Image => "image",
             Self::Progress => "progress",
             Self::Slider => "slider",
@@ -105,6 +108,7 @@ impl WidgetKind {
             Self::Clock => BASE_CLOCK,
             Self::Workspaces => BASE_WORKSPACES,
             Self::Dock => BASE_DOCK,
+            Self::Tray => BASE_TRAY,
             Self::Image => BASE_IMAGE,
             Self::Progress => BASE_PROGRESS,
             Self::Slider => BASE_SLIDER,
@@ -360,6 +364,26 @@ const BASE_DOCK: &[&str] = &[
     "angle",
 ];
 
+const BASE_TRAY: &[&str] = &[
+    "class",
+    "classes",
+    "visible",
+    "visible_bind",
+    "width",
+    "height",
+    "hexpand",
+    "vexpand",
+    "halign",
+    "valign",
+    "class_bind",
+    "orientation",
+    "spacing",
+    "icon_size",
+    "max_items",
+    "show_passive",
+    "hide_when_empty",
+];
+
 const BASE_IMAGE: &[&str] = &[
     "class",
     "classes",
@@ -592,6 +616,16 @@ pub struct DockProps {
 }
 
 #[derive(Debug, Clone, Default)]
+pub struct TrayProps {
+    pub orientation: Option<String>,
+    pub spacing: Option<i32>,
+    pub icon_size: Option<i32>,
+    pub max_items: Option<u32>,
+    pub show_passive: Option<bool>,
+    pub hide_when_empty: Option<bool>,
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ImageProps {
     pub path: Option<String>,
     pub bind: Option<String>,
@@ -681,6 +715,7 @@ pub enum WidgetProps {
     Clock(ClockProps),
     Workspaces(WorkspacesProps),
     Dock(DockProps),
+    Tray(TrayProps),
     Image(ImageProps),
     Progress(ProgressProps),
     Slider(SliderProps),

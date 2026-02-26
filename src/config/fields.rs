@@ -259,6 +259,26 @@ impl WidgetProps {
                     fields.push("angle");
                 }
             }
+            Self::Tray(props) => {
+                if props.orientation.is_some() {
+                    fields.push("orientation");
+                }
+                if props.spacing.is_some() {
+                    fields.push("spacing");
+                }
+                if props.icon_size.is_some() {
+                    fields.push("icon_size");
+                }
+                if props.max_items.is_some() {
+                    fields.push("max_items");
+                }
+                if props.show_passive.is_some() {
+                    fields.push("show_passive");
+                }
+                if props.hide_when_empty.is_some() {
+                    fields.push("hide_when_empty");
+                }
+            }
             Self::Image(props) => {
                 if props.path.is_some() {
                     fields.push("path");

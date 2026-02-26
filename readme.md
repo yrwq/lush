@@ -92,9 +92,6 @@ ui.windows({
 
 ## roadmap
 
-- [ ] auto config reloading (file watcher)
-- [ ] systray
-
 widgets:
 
 - [ ] entry

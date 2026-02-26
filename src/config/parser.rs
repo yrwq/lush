@@ -3,7 +3,7 @@ use mlua::{Function, Lua, Result, Table, Value};
 use super::types::{
     BoxProps, ButtonProps, ClickAction, ClickBindings, ClockProps, DockClickAction, DockProps,
     IconifyRule, ImageProps, LabelProps, ListProps, OverlayProps, PopoverProps, ProgressProps,
-    RevealerProps, RichFormatRule, RichTextStyle, ScrollProps, SliderProps, WidgetBase,
+    RevealerProps, RichFormatRule, RichTextStyle, ScrollProps, SliderProps, TrayProps, WidgetBase,
     WidgetConfig, WidgetKind, WidgetProps, WindowConfig, WorkspacesProps,
 };
 use super::validator::validate_widget_tree;
@@ -20,7 +20,7 @@ const POSITION_BOTTOM_ANCHORS: [&str; 3] = ["bottom", "left", "right"];
 const POSITION_LEFT_ANCHORS: [&str; 3] = ["left", "top", "bottom"];
 const POSITION_RIGHT_ANCHORS: [&str; 3] = ["right", "top", "bottom"];
 
-pub const WIDGET_KINDS: [&str; 17] = [
+pub const WIDGET_KINDS: [&str; 18] = [
     "hbox",
     "vbox",
     "centerbox",
@@ -34,6 +34,7 @@ pub const WIDGET_KINDS: [&str; 17] = [
     "clock",
     "workspaces",
     "dock",
+    "tray",
     "image",
     "progress",
     "slider",
@@ -255,6 +256,7 @@ fn parse_widget_props(lua: &Lua, kind: WidgetKind, t: &Table) -> Result<WidgetPr
         WidgetKind::Clock => Ok(WidgetProps::Clock(parse_clock_props(t)?)),
         WidgetKind::Workspaces => Ok(WidgetProps::Workspaces(parse_workspaces_props(t)?)),
         WidgetKind::Dock => Ok(WidgetProps::Dock(parse_dock_props(t)?)),
+        WidgetKind::Tray => Ok(WidgetProps::Tray(parse_tray_props(t))),
         WidgetKind::Image => Ok(WidgetProps::Image(parse_image_props(lua, t)?)),
         WidgetKind::Progress => Ok(WidgetProps::Progress(parse_progress_props(t))),
         WidgetKind::Slider => Ok(WidgetProps::Slider(parse_slider_props(t))),
@@ -408,6 +410,17 @@ fn parse_progress_props(t: &Table) -> ProgressProps {
         min: t.get("min").ok(),
         max: t.get("max").ok(),
         inverted: t.get::<Option<bool>>("inverted").unwrap_or(None),
+    }
+}
+
+fn parse_tray_props(t: &Table) -> TrayProps {
+    TrayProps {
+        orientation: t.get("orientation").ok(),
+        spacing: t.get("spacing").ok(),
+        icon_size: t.get("icon_size").ok(),
+        max_items: t.get("max_items").ok(),
+        show_passive: t.get::<Option<bool>>("show_passive").unwrap_or(None),
+        hide_when_empty: t.get::<Option<bool>>("hide_when_empty").unwrap_or(None),
     }
 }
 

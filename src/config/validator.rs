@@ -133,6 +133,26 @@ fn validate_widget(cfg: &WidgetConfig) {
                 );
             }
         }
+        (WidgetKind::Tray, WidgetProps::Tray(props)) => {
+            if let Some(max_items) = props.max_items
+                && max_items == 0
+            {
+                log::warn!(
+                    "{}tray.max_items should be > 0; got {}",
+                    format_line_prefix(cfg.line),
+                    max_items
+                );
+            }
+            if let Some(icon_size) = props.icon_size
+                && icon_size <= 0
+            {
+                log::warn!(
+                    "{}tray.icon_size should be > 0; got {}",
+                    format_line_prefix(cfg.line),
+                    icon_size
+                );
+            }
+        }
         (WidgetKind::Popover, _) => {
             if cfg.base.children.is_empty() {
                 log::warn!(

@@ -5,3 +5,4 @@ pub mod lua_runtime;
 pub mod notifications;
 mod river;
 pub mod signal_bus;
+pub mod tray;

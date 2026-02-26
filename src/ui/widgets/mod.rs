@@ -39,6 +39,7 @@ pub fn build_widget(
         WidgetKind::Clock => content::clock::build(cfg, &ctx),
         WidgetKind::Workspaces => integrations::workspaces::build(cfg, &ctx),
         WidgetKind::Dock => integrations::dock::build(cfg, &ctx),
+        WidgetKind::Tray => integrations::tray::build(cfg, &ctx),
         WidgetKind::Image => content::image::build(cfg, &ctx),
         WidgetKind::Progress => content::progress::build(cfg, &ctx),
         WidgetKind::Slider => content::slider::build(cfg, &ctx),

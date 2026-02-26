@@ -56,6 +56,7 @@ pub fn expand_widget_template(cfg: &mut WidgetConfig, base: &str, index: usize) 
                 .map(|(k, v)| (k.clone(), replace_tokens(v, base, &item_ref, &item_index)))
                 .collect();
         }
+        WidgetProps::Tray(_) => {}
         WidgetProps::Image(props) => expand_image_props(props, base, &item_ref, &item_index),
         WidgetProps::Progress(props) => expand_progress_props(props, base, &item_ref, &item_index),
         WidgetProps::Slider(props) => {
