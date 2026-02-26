@@ -200,7 +200,8 @@ fn first_set_bit(mask: u32) -> u32 {
 
 fn normalize_state(state: &mut CompositorStateSnapshot) {
     let focused = state.workspace.focused_window.clone();
-    let resolved = resolve_focus_index(&state.toplevels, &focused);
+    let resolved = resolve_focus_index(&state.toplevels, &focused)
+        .or_else(|| resolve_river_focus_index(&state.toplevels, &focused));
 
     if let Some(idx) = resolved {
         set_single_focused(&mut state.toplevels, idx);
@@ -215,7 +216,7 @@ fn normalize_state(state: &mut CompositorStateSnapshot) {
         entry.focused = false;
     }
 
-    if !state.toplevels.is_empty() {
+    if !state.toplevels.is_empty() && detected_name() != "river" {
         state.workspace.focused_window.title.clear();
         state.workspace.focused_window.app_id.clear();
         state.workspace.focused_window.identifier.clear();
@@ -241,6 +242,33 @@ fn resolve_focus_index(
     }
 
     None
+}
+
+fn resolve_river_focus_index(
+    entries: &[ToplevelEntry],
+    focused: &FocusedWindowSnapshot,
+) -> Option<usize> {
+    if detected_name() != "river" {
+        return None;
+    }
+
+    let title = focused.title.trim();
+    if title.is_empty() {
+        return None;
+    }
+
+    let mut found: Option<usize> = None;
+    for (idx, entry) in entries.iter().enumerate() {
+        let entry_title = entry.title.trim();
+        if entry_title.is_empty() || !entry_title.eq_ignore_ascii_case(title) {
+            continue;
+        }
+        if found.is_some() {
+            return None;
+        }
+        found = Some(idx);
+    }
+    found
 }
 
 fn set_single_focused(entries: &mut [ToplevelEntry], focused_idx: usize) {

@@ -39,10 +39,11 @@ pub fn start_evented(bus: SignalBus, output_selector: Option<String>) -> Composi
     let bus_for_task = bus.clone();
     let task = MainContext::default().spawn_local(async move {
         while let Ok(snapshot) = rx.recv().await {
+            let mut latest = snapshot;
             while let Ok(next) = rx.try_recv() {
-                apply_snapshot(&bus_for_task, &next);
+                latest = next;
             }
-            apply_snapshot(&bus_for_task, &snapshot);
+            apply_snapshot(&bus_for_task, &latest);
         }
     });
 
