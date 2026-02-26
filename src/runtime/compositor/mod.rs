@@ -64,30 +64,25 @@ pub fn detected_name() -> &'static str {
     "unknown"
 }
 
-pub fn subscribe_snapshots(output_selector: Option<&str>) -> Option<Receiver<CompositorSnapshot>> {
-    if let Some(rx) = river::subscribe_snapshots(output_selector) {
-        return Some(rx);
-    }
-    sway::subscribe_snapshots(output_selector)
-}
-
-pub fn subscribe_toplevels(output_selector: Option<&str>) -> Option<Receiver<Vec<ToplevelEntry>>> {
-    if let Some(rx) = river::subscribe_toplevels(output_selector) {
-        return Some(rx);
-    }
-    if let Some(rx) = sway::subscribe_toplevels(output_selector) {
-        return Some(rx);
-    }
-    toplevel::subscribe(output_selector)
-}
-
 pub fn subscribe_state(output_selector: Option<&str>) -> Option<Receiver<CompositorStateSnapshot>> {
-    let workspace_rx = subscribe_snapshots(output_selector);
-    let toplevel_rx = subscribe_toplevels(output_selector);
+    match active_backend() {
+        BackendKind::River => merge_state_streams(
+            river::subscribe_snapshots(output_selector),
+            river::subscribe_toplevels(output_selector)
+                .or_else(|| toplevel::subscribe(output_selector)),
+        ),
+        BackendKind::Sway => sway::subscribe_state(output_selector),
+        BackendKind::Unknown => merge_state_streams(None, toplevel::subscribe(output_selector)),
+    }
+}
+
+fn merge_state_streams(
+    workspace_rx: Option<Receiver<CompositorSnapshot>>,
+    toplevel_rx: Option<Receiver<Vec<ToplevelEntry>>>,
+) -> Option<Receiver<CompositorStateSnapshot>> {
     if workspace_rx.is_none() && toplevel_rx.is_none() {
         return None;
     }
-
     enum Update {
         Workspace(CompositorSnapshot),
         Toplevels(Vec<ToplevelEntry>),
@@ -137,6 +132,21 @@ pub fn subscribe_state(output_selector: Option<&str>) -> Option<Receiver<Composi
     });
 
     Some(rx)
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum BackendKind {
+    River,
+    Sway,
+    Unknown,
+}
+
+fn active_backend() -> BackendKind {
+    match detected_name() {
+        "river" => BackendKind::River,
+        "sway" => BackendKind::Sway,
+        _ => BackendKind::Unknown,
+    }
 }
 
 pub fn focus_workspace(index_1_based: u32) -> Result<(), String> {
@@ -225,40 +235,6 @@ fn resolve_focus_index(
         && let Some(idx) = entries.iter().position(|entry| {
             let id = entry.identifier.trim();
             !id.is_empty() && id == by_id
-        })
-    {
-        return Some(idx);
-    }
-
-    let by_title = focused.title.trim();
-    let by_app = focused.app_id.trim();
-    if !by_title.is_empty()
-        && !by_app.is_empty()
-        && let Some(idx) = entries.iter().position(|entry| {
-            let title = entry.title.trim();
-            let app = entry.app_id.trim();
-            !title.is_empty()
-                && !app.is_empty()
-                && title.eq_ignore_ascii_case(by_title)
-                && app.eq_ignore_ascii_case(by_app)
-        })
-    {
-        return Some(idx);
-    }
-
-    if !by_title.is_empty()
-        && let Some(idx) = entries.iter().position(|entry| {
-            let title = entry.title.trim();
-            !title.is_empty() && title.eq_ignore_ascii_case(by_title)
-        })
-    {
-        return Some(idx);
-    }
-
-    if !by_app.is_empty()
-        && let Some(idx) = entries.iter().position(|entry| {
-            let app = entry.app_id.trim();
-            !app.is_empty() && app.eq_ignore_ascii_case(by_app)
         })
     {
         return Some(idx);

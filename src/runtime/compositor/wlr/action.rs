@@ -146,7 +146,6 @@ fn create_session() -> Result<WorkerSession, String> {
 
 fn handle_request(session: &mut WorkerSession, request: &ActionRequest) -> Result<(), String> {
     if !matches!(request.kind, ActionKind::Activate) {
-        // refresh seat lazily for non-activate requests too, keeps session state coherent
         bind_first_seat_if_available(&session.globals, &session.qh, &mut session.state);
     }
 

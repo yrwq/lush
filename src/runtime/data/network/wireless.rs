@@ -84,20 +84,17 @@ pub(super) fn read_ssid(iface: &str) -> Option<String> {
         },
     };
 
-    // socket call returns an owned fd on success.
     let fd = unsafe { libc::socket(libc::AF_INET, libc::SOCK_DGRAM, 0) };
     if fd < 0 {
         return None;
     }
 
-    // req points to initialized memory.
     let rc = unsafe { libc::ioctl(fd, SIOCGIWESSID, &mut req) };
     unsafe { libc::close(fd) };
     if rc < 0 {
         return None;
     }
 
-    // ioctl has written req.u.essid.length when rc >= 0.
     let len = unsafe { req.u.essid.length as usize }.min(essid.len());
     let mut out = String::from_utf8_lossy(&essid[..len]).to_string();
     while out.ends_with('\0') {

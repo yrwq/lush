@@ -1,6 +1,6 @@
 use glib::MainContext;
 
-use crate::runtime::compositor::{self, CompositorStateSnapshot, ToplevelEntry};
+use crate::runtime::compositor::{self, CompositorStateSnapshot};
 use crate::runtime::signal_bus::SignalBus;
 
 pub struct CompositorWatcher {
@@ -54,24 +54,12 @@ fn apply_snapshot(bus: &SignalBus, snapshot: &CompositorStateSnapshot) {
     let focused_entry = snapshot.toplevels.iter().find(|entry| entry.focused);
     bus.batch(|| {
         let focused_workspace = workspace.focused_workspace().to_string();
-        let focused_title = if let Some(entry) = focused_entry {
-            entry.title.trim().to_string()
-        } else if snapshot.toplevels.is_empty() {
-            workspace.focused_window.title.clone()
-        } else {
-            String::new()
-        };
-        let focused_app_id = if let Some(entry) = focused_entry {
-            entry.app_id.trim().to_string()
-        } else if snapshot.toplevels.is_empty() {
-            if workspace.focused_window.app_id.trim().is_empty() {
-                app_id_for_focused_title(&focused_title, &snapshot.toplevels).unwrap_or_default()
-            } else {
-                workspace.focused_window.app_id.clone()
-            }
-        } else {
-            String::new()
-        };
+        let focused_title = focused_entry
+            .map(|entry| entry.title.trim().to_string())
+            .unwrap_or_default();
+        let focused_app_id = focused_entry
+            .map(|entry| entry.app_id.trim().to_string())
+            .unwrap_or_default();
         bus.set("data.compositor.name", compositor::detected_name());
         bus.set(
             "data.compositor.focused_mask",
@@ -100,28 +88,4 @@ fn apply_snapshot(bus: &SignalBus, snapshot: &CompositorStateSnapshot) {
             ),
         );
     });
-}
-
-fn app_id_for_focused_title(title: &str, toplevels: &[ToplevelEntry]) -> Option<String> {
-    let trimmed = title.trim();
-    if trimmed.is_empty() {
-        return None;
-    }
-
-    let mut unique: Option<String> = None;
-    for entry in toplevels {
-        if !entry.title.trim().eq_ignore_ascii_case(trimmed) {
-            continue;
-        }
-        let app_id = entry.app_id.trim();
-        if app_id.is_empty() {
-            continue;
-        }
-        match unique.as_deref() {
-            None => unique = Some(app_id.to_string()),
-            Some(existing) if existing.eq_ignore_ascii_case(app_id) => {}
-            Some(_) => return None,
-        }
-    }
-    unique
 }

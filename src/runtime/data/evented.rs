@@ -145,7 +145,6 @@ pub fn spawn_udev_trigger_thread(
                 events: libc::POLLIN,
                 revents: 0,
             };
-            // SAFETY: pfd points to one valid pollfd element for the duration of this call.
             let rc = unsafe { libc::poll(&mut pfd, 1, 1000) };
             if rc <= 0 {
                 continue;

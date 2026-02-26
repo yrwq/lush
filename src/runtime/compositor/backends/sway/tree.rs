@@ -11,11 +11,25 @@ pub(super) fn find_focused_node(node: &Value) -> Option<&Value> {
         }
     }
 
-    if node.get("focused").and_then(Value::as_bool) == Some(true) {
+    if is_focused_window_node(node) {
         return Some(node);
     }
 
     None
+}
+
+fn is_focused_window_node(node: &Value) -> bool {
+    if node.get("focused").and_then(Value::as_bool) != Some(true) {
+        return false;
+    }
+
+    let node_type = node.get("type").and_then(Value::as_str).unwrap_or_default();
+    if node_type != "con" && node_type != "floating_con" {
+        return false;
+    }
+
+    let has_window = node.get("window").and_then(Value::as_i64).unwrap_or(0) > 0;
+    has_window || node_app_id(node).is_some() || node_title(node).is_some()
 }
 
 pub(super) fn node_app_id(node: &Value) -> Option<&str> {
