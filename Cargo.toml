@@ -8,7 +8,7 @@ documentation = "https://yrwq.github.io/lush"
 readme = "readme.md"
 homepage = "https://github.com/yrwq/lush"
 repository = "https://github.com/yrwq/lush"
-keywords = ["wayland", "gtk4", "bar", "shell", "widgets", "lua"]
+keywords = ["wayland", "gtk4", "bar", "shell", "lua"]
 categories = ["gui", "config"]
 
 [[bin]]
