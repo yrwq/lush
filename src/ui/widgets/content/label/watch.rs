@@ -7,7 +7,7 @@ use gtk4::prelude::*;
 
 use crate::config::{LabelProps, WidgetConfig};
 use crate::runtime::signal_bus::SignalBus;
-use crate::ui::signal_watch::watch_signal;
+use crate::ui::signal_watch::{watch_signal, window_is_visible};
 
 pub struct LabelWatchCtx {
     pub bus: SignalBus,
@@ -43,6 +43,9 @@ pub fn install_label_watchers<W, F>(
         watch_signal(&bus, bind_name, move |value| {
             *current_value_for_watch.borrow_mut() = value.to_string();
             if let Some(widget) = weak.upgrade() {
+                if !window_is_visible(&widget) {
+                    return glib::ControlFlow::Continue;
+                }
                 apply_for_watch(
                     &widget,
                     &cfg_for_watch,
@@ -67,6 +70,9 @@ pub fn install_label_watchers<W, F>(
         watch_signal(&bus, class_bind, move |state| {
             *current_state_for_watch.borrow_mut() = state.to_string();
             if let Some(widget) = weak.upgrade() {
+                if !window_is_visible(&widget) {
+                    return glib::ControlFlow::Continue;
+                }
                 apply_for_watch(
                     &widget,
                     &cfg_for_watch,
@@ -93,6 +99,9 @@ pub fn install_label_watchers<W, F>(
                 .borrow_mut()
                 .insert(token.clone(), value.to_string());
             if let Some(widget) = weak.upgrade() {
+                if !window_is_visible(&widget) {
+                    return glib::ControlFlow::Continue;
+                }
                 apply_for_watch(
                     &widget,
                     &cfg_for_watch,

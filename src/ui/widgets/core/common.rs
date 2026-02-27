@@ -6,7 +6,7 @@ use gtk4::prelude::*;
 
 use crate::config::{WidgetBase, WidgetConfig};
 use crate::runtime::signal_bus::SignalBus;
-use crate::ui::signal_watch::watch_signal;
+use crate::ui::signal_watch::{watch_signal, window_is_visible};
 
 pub fn finalize_widget(widget: &Widget, cfg: &WidgetConfig, bus: &SignalBus, clickable: bool) {
     apply_clickable_cursor(widget, clickable);
@@ -85,6 +85,9 @@ fn apply_visibility(widget: &Widget, base: &WidgetBase, bus: &SignalBus) {
     let weak = widget.downgrade();
     watch_signal(bus, signal_name, move |value| {
         if let Some(widget) = weak.upgrade() {
+            if !window_is_visible(&widget) {
+                return glib::ControlFlow::Continue;
+            }
             widget.set_visible(parse_visible_value(value));
             glib::ControlFlow::Continue
         } else {
@@ -115,6 +118,9 @@ fn apply_state_class(widget: &Widget, base: &WidgetBase, bus: &SignalBus) {
     let weak = widget.downgrade();
     watch_signal(bus, signal_name, move |value| {
         if let Some(widget) = weak.upgrade() {
+            if !window_is_visible(&widget) {
+                return glib::ControlFlow::Continue;
+            }
             set_state_class(&widget, prefix, value, &previous);
             glib::ControlFlow::Continue
         } else {

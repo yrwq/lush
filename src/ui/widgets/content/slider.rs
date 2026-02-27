@@ -5,7 +5,7 @@ use gtk4::prelude::*;
 use gtk4::{EventControllerScroll, EventControllerScrollFlags, Orientation, Scale, Widget};
 
 use crate::config::{WidgetConfig, WidgetProps};
-use crate::ui::signal_watch::watch_signal;
+use crate::ui::signal_watch::{watch_signal, window_is_visible};
 use crate::ui::widgets::core::bindings::initial_value_from_bind_or;
 use crate::ui::widgets::core::build_ctx::WidgetBuildCtx;
 use crate::ui::widgets::core::common::finalize_widget;
@@ -59,6 +59,9 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
         let syncing_for_watch = syncing_from_bus.clone();
         watch_signal(ctx.bus, bind_name, move |value| {
             if let Some(slider) = weak.upgrade() {
+                if !window_is_visible(&slider) {
+                    return glib::ControlFlow::Continue;
+                }
                 let current = slider.value();
                 let parsed = parse_f64_or(value, current);
                 syncing_for_watch.set(true);

@@ -6,7 +6,7 @@ use gtk4::{ContentFit, IconLookupFlags, IconTheme, Picture, TextDirection, Widge
 
 use crate::config::{ImageProps, WidgetConfig, WidgetProps};
 use crate::runtime::signal_bus::SignalBus;
-use crate::ui::signal_watch::watch_signal;
+use crate::ui::signal_watch::{watch_signal, window_is_visible};
 use crate::ui::widgets::core::build_ctx::WidgetBuildCtx;
 use crate::ui::widgets::core::clicks::wire_gesture_click;
 use crate::ui::widgets::core::common::finalize_widget;
@@ -49,6 +49,9 @@ fn wire_image_binding(
     let weak = picture.downgrade();
     watch_signal(bus, signal_name, move |value| {
         if let Some(picture) = weak.upgrade() {
+            if !window_is_visible(&picture) {
+                return glib::ControlFlow::Continue;
+            }
             set_picture_source(&picture, Some(value), width, height);
             glib::ControlFlow::Continue
         } else {

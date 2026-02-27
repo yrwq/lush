@@ -5,7 +5,7 @@ use gtk4::prelude::*;
 use gtk4::{Align, LevelBar, Orientation, Widget};
 
 use crate::config::{WidgetConfig, WidgetProps};
-use crate::ui::signal_watch::watch_signal;
+use crate::ui::signal_watch::{watch_signal, window_is_visible};
 use crate::ui::widgets::core::bindings::{
     initial_state_from_class_bind, initial_value_from_bind_or,
 };
@@ -55,6 +55,9 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
         watch_signal(ctx.bus, bind_name, move |value| {
             *value_for_watch.borrow_mut() = value.to_string();
             if let Some(bar) = bar_weak.upgrade() {
+                if !window_is_visible(&bar) {
+                    return glib::ControlFlow::Continue;
+                }
                 apply_progress(
                     &bar,
                     &cfg_for_watch,
@@ -76,6 +79,9 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
         watch_signal(ctx.bus, class_bind, move |state| {
             *state_for_watch.borrow_mut() = state.to_string();
             if let Some(bar) = bar_weak.upgrade() {
+                if !window_is_visible(&bar) {
+                    return glib::ControlFlow::Continue;
+                }
                 apply_progress(
                     &bar,
                     &cfg_for_watch,
