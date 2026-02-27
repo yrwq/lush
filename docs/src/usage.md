@@ -69,6 +69,7 @@ lush.data.use("memory", { interval = 3 })
 lush.data.use("network", { interval = 1, iface = "wlan0" }) -- optional iface
 lush.data.use("disk", { interval = 10, path = "/" }) -- optional path
 lush.data.use("battery")
+lush.data.use("audio")
 
 -- event driven with fallback refresh
 lush.data.use("bluetooth", { interval = 120 })

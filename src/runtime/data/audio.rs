@@ -93,8 +93,13 @@ fn run_pulse_loop(
     let default_sink_name = Rc::new(RefCell::new(String::new()));
 
     while !stop.load(Ordering::Relaxed) {
+        let mut did_work = false;
         match mainloop.borrow_mut().iterate(false) {
-            IterateResult::Success(_) => {}
+            IterateResult::Success(events) => {
+                if events > 0 {
+                    did_work = true;
+                }
+            }
             IterateResult::Quit(_) | IterateResult::Err(_) => break,
         }
         if !refresh_inflight.get() && refresh_pending.replace(false) {
@@ -108,8 +113,11 @@ fn run_pulse_loop(
                 force_server_refresh,
                 refresh_inflight.clone(),
             );
+            did_work = true;
         }
-        thread::sleep(Duration::from_millis(12));
+        if !did_work {
+            thread::sleep(Duration::from_millis(2));
+        }
     }
 
     Ok(())
@@ -127,13 +135,16 @@ fn wait_for_ready(
                 return Err("audio: context failed before ready".to_string());
             }
             _ => match mainloop.borrow_mut().iterate(false) {
-                IterateResult::Success(_) => {}
+                IterateResult::Success(events) => {
+                    if events == 0 {
+                        thread::sleep(Duration::from_millis(2));
+                    }
+                }
                 IterateResult::Quit(_) | IterateResult::Err(_) => {
                     return Err("audio: mainloop failed while waiting for ready".to_string());
                 }
             },
         }
-        thread::sleep(Duration::from_millis(20));
     }
     Ok(())
 }
