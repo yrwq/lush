@@ -1,4 +1,3 @@
-mod broadcast;
 mod ipc;
 mod toplevels;
 mod tree;
@@ -13,7 +12,7 @@ use std::thread;
 
 use crate::runtime::compositor::CompositorStateSnapshot;
 
-use self::broadcast::BroadcastHub;
+use super::broadcast::BroadcastHub;
 
 pub fn available() -> bool {
     let Some(path) = ipc::socket_path() else {

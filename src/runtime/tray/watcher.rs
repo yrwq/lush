@@ -4,7 +4,7 @@ use zbus::blocking::connection::Builder as ConnectionBuilder;
 use zbus::interface;
 use zbus::message::Header;
 
-use super::{register_item, registered_items_snapshot, WATCHER_PATH, WATCHER_SERVICES};
+use super::{WATCHER_PATH, WATCHER_SERVICES, register_item, registered_items_snapshot};
 
 macro_rules! define_watcher_iface {
     ($struct_name:ident, $iface_name:literal) => {
@@ -45,12 +45,18 @@ macro_rules! define_watcher_iface {
     };
 }
 
-define_watcher_iface!(KdeStatusNotifierWatcherIface, "org.kde.StatusNotifierWatcher");
+define_watcher_iface!(
+    KdeStatusNotifierWatcherIface,
+    "org.kde.StatusNotifierWatcher"
+);
 define_watcher_iface!(
     FreedesktopStatusNotifierWatcherIface,
     "org.freedesktop.StatusNotifierWatcher"
 );
-define_watcher_iface!(AyatanaStatusNotifierWatcherIface, "org.ayatana.StatusNotifierWatcher");
+define_watcher_iface!(
+    AyatanaStatusNotifierWatcherIface,
+    "org.ayatana.StatusNotifierWatcher"
+);
 
 pub(super) fn run_watcher_server() -> zbus::Result<()> {
     let connection = ConnectionBuilder::session()?

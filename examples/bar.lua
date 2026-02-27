@@ -58,10 +58,11 @@ local bar_window = ui.window({
         spacing = 0,
         children = {
           ui.workspaces({
+            output = "focused",
             class = "tags",
             all_outputs = false,
             active_only = false,
-            count = 5,
+            -- count = 5,
             show_clients = true,
             clients_max_items = 4,
             clients_icon_size = 18,

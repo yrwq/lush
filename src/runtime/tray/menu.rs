@@ -76,7 +76,10 @@ pub(super) fn activate_menu_item(item: &TrayItemSnapshot, id: i32) -> Result<(),
     let timestamp = (now_ms % u32::MAX as u64) as u32;
 
     proxy
-        .call::<_, _, ()>("Event", &(id, "clicked", OwnedValue::from(0_i32), timestamp))
+        .call::<_, _, ()>(
+            "Event",
+            &(id, "clicked", OwnedValue::from(0_i32), timestamp),
+        )
         .map_err(|e| format!("menu Event failed: {}", e))?;
     Ok(())
 }

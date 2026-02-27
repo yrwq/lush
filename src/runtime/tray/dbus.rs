@@ -4,7 +4,11 @@ use zbus::zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Value};
 
 use super::TrayItemSnapshot;
 
-pub(super) fn call_item_method<B>(item: &TrayItemSnapshot, method: &str, body: &B) -> Result<(), String>
+pub(super) fn call_item_method<B>(
+    item: &TrayItemSnapshot,
+    method: &str,
+    body: &B,
+) -> Result<(), String>
 where
     B: zbus::zvariant::DynamicType + Serialize,
 {

@@ -4,7 +4,7 @@ mod backends;
 mod toplevel;
 mod wlr;
 
-use backends::{river, sway};
+use backends::{hyprland, river, sway};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FocusedWindowSnapshot {
@@ -44,11 +44,11 @@ pub struct CompositorStateSnapshot {
 }
 
 pub fn detected_name() -> &'static str {
-    if crate::runtime::river::river_status_available() {
-        return "river";
-    }
-    if sway::available() {
-        return "sway";
+    match active_backend() {
+        BackendKind::Hyprland => return "hyprland",
+        BackendKind::River => return "river",
+        BackendKind::Sway => return "sway",
+        BackendKind::Unknown => {}
     }
 
     if let Ok(raw) = std::env::var("XDG_CURRENT_DESKTOP") {
@@ -66,6 +66,8 @@ pub fn detected_name() -> &'static str {
 
 pub fn subscribe_state(output_selector: Option<&str>) -> Option<Receiver<CompositorStateSnapshot>> {
     match active_backend() {
+        BackendKind::Hyprland => hyprland::subscribe_state(output_selector)
+            .or_else(|| merge_state_streams(None, toplevel::subscribe(output_selector))),
         BackendKind::River => merge_state_streams(
             river::subscribe_snapshots(output_selector),
             river::subscribe_toplevels(output_selector)
@@ -136,27 +138,33 @@ fn merge_state_streams(
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum BackendKind {
+    Hyprland,
     River,
     Sway,
     Unknown,
 }
 
 fn active_backend() -> BackendKind {
-    match detected_name() {
-        "river" => BackendKind::River,
-        "sway" => BackendKind::Sway,
-        _ => BackendKind::Unknown,
+    if crate::runtime::river::river_status_available() {
+        return BackendKind::River;
     }
+    if hyprland::available() {
+        return BackendKind::Hyprland;
+    }
+    if sway::available() {
+        return BackendKind::Sway;
+    }
+    BackendKind::Unknown
 }
 
 pub fn focus_workspace(index_1_based: u32) -> Result<(), String> {
     let idx = index_1_based.clamp(1, 32);
 
-    if detected_name() == "river" {
-        return river::focus_workspace(idx);
-    }
-    if detected_name() == "sway" {
-        return sway::focus_workspace(idx);
+    match active_backend() {
+        BackendKind::River => return river::focus_workspace(idx),
+        BackendKind::Hyprland => return hyprland::focus_workspace(idx),
+        BackendKind::Sway => return sway::focus_workspace(idx),
+        BackendKind::Unknown => {}
     }
 
     Err(format!(
@@ -200,8 +208,9 @@ fn first_set_bit(mask: u32) -> u32 {
 
 fn normalize_state(state: &mut CompositorStateSnapshot) {
     let focused = state.workspace.focused_window.clone();
+    let river_backend = active_backend() == BackendKind::River;
     let resolved = resolve_focus_index(&state.toplevels, &focused)
-        .or_else(|| resolve_river_focus_index(&state.toplevels, &focused));
+        .or_else(|| resolve_river_focus_index(&state.toplevels, &focused, river_backend));
 
     if let Some(idx) = resolved {
         set_single_focused(&mut state.toplevels, idx);
@@ -216,7 +225,7 @@ fn normalize_state(state: &mut CompositorStateSnapshot) {
         entry.focused = false;
     }
 
-    if !state.toplevels.is_empty() && detected_name() != "river" {
+    if !river_backend {
         state.workspace.focused_window.title.clear();
         state.workspace.focused_window.app_id.clear();
         state.workspace.focused_window.identifier.clear();
@@ -247,8 +256,9 @@ fn resolve_focus_index(
 fn resolve_river_focus_index(
     entries: &[ToplevelEntry],
     focused: &FocusedWindowSnapshot,
+    river_backend: bool,
 ) -> Option<usize> {
-    if detected_name() != "river" {
+    if !river_backend {
         return None;
     }
 

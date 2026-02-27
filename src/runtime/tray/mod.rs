@@ -89,15 +89,17 @@ fn ensure_started() {
     START_TRAY_COLLECTOR.call_once(|| {
         if let Err(err) = std::thread::Builder::new()
             .name("lush-tray".to_string())
-            .spawn(move || loop {
-                match zbus::blocking::Connection::session() {
-                    Ok(conn) => match collect::collect_snapshot(&conn) {
-                        Ok(snapshot) => publish(snapshot),
+            .spawn(move || {
+                loop {
+                    match zbus::blocking::Connection::session() {
+                        Ok(conn) => match collect::collect_snapshot(&conn) {
+                            Ok(snapshot) => publish(snapshot),
+                            Err(_err) => {}
+                        },
                         Err(_err) => {}
-                    },
-                    Err(_err) => {}
+                    }
+                    std::thread::sleep(Duration::from_secs(2));
                 }
-                std::thread::sleep(Duration::from_secs(2));
             })
         {
             log::warn!("tray collector thread spawn failed: {}", err);

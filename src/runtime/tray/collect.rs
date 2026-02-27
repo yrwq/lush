@@ -6,8 +6,8 @@ use zbus::zvariant::OwnedValue;
 
 use super::dbus::extract_object_path_string;
 use super::{
-    DEFAULT_ITEM_PATH, ITEM_IFACES, ITEM_SERVICE_PREFIXES, TrayItemSnapshot, TrayPixmap, TraySnapshot,
-    WATCHER_SERVICES,
+    DEFAULT_ITEM_PATH, ITEM_IFACES, ITEM_SERVICE_PREFIXES, TrayItemSnapshot, TrayPixmap,
+    TraySnapshot, WATCHER_SERVICES,
 };
 
 type PropsMap = HashMap<String, OwnedValue>;
@@ -59,7 +59,8 @@ fn collect_registered_descriptors(conn: &BlockingConnection) -> Vec<(String, Str
             continue;
         };
 
-        let Ok(registered) = proxy.get_property::<Vec<String>>("RegisteredStatusNotifierItems") else {
+        let Ok(registered) = proxy.get_property::<Vec<String>>("RegisteredStatusNotifierItems")
+        else {
             continue;
         };
 
@@ -113,7 +114,8 @@ fn parse_descriptor(raw: &str) -> Option<(String, String)> {
 }
 
 fn collect_item(conn: &BlockingConnection, service: &str, path: &str) -> Option<TrayItemSnapshot> {
-    let properties = BlockingProxy::new(conn, service, path, "org.freedesktop.DBus.Properties").ok()?;
+    let properties =
+        BlockingProxy::new(conn, service, path, "org.freedesktop.DBus.Properties").ok()?;
 
     let mut selected_iface = None;
     let mut all_props = None;
@@ -130,7 +132,8 @@ fn collect_item(conn: &BlockingConnection, service: &str, path: &str) -> Option<
 
     let iface = selected_iface?;
     let props = all_props?;
-    let menu_path = get_menu_path_any_iface(&properties).or_else(|| map_object_path(&props, "Menu"));
+    let menu_path =
+        get_menu_path_any_iface(&properties).or_else(|| map_object_path(&props, "Menu"));
 
     Some(TrayItemSnapshot {
         service: service.to_string(),

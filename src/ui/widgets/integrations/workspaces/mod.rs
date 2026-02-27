@@ -72,7 +72,7 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
     let selector_for_backend = if props.all_outputs.unwrap_or(false) {
         None
     } else {
-        output_selector.as_deref()
+        output_selector.as_deref().or(Some("focused"))
     };
     let Some(rx) = compositor::subscribe_state(selector_for_backend) else {
         log::debug!("workspaces: compositor workspace backend unavailable; widget disabled");
@@ -207,9 +207,7 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
 
     MainContext::default().spawn_local(async move {
         while let Ok(snapshot) = rx.recv().await {
-            if snapshot.workspace.focused_mask != 0 {
-                focused_for_updates.set(snapshot.workspace.focused_mask);
-            }
+            focused_for_updates.set(snapshot.workspace.focused_mask);
             occupied_for_updates.set(snapshot.workspace.occupied_mask);
             urgent_for_updates.set(snapshot.workspace.urgent_mask);
             *entries_for_updates.borrow_mut() = snapshot.toplevels;

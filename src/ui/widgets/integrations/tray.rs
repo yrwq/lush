@@ -1,8 +1,9 @@
 use glib::MainContext;
 use gtk4::prelude::*;
 use gtk4::{
-    gdk, Box as GBox, Button, CssProvider, EventControllerScroll, EventControllerScrollFlags,
-    GestureClick, Image, Orientation, Popover, Separator, Widget, STYLE_PROVIDER_PRIORITY_USER,
+    Box as GBox, Button, CssProvider, EventControllerScroll, EventControllerScrollFlags,
+    GestureClick, Image, Orientation, Popover, STYLE_PROVIDER_PRIORITY_USER, Separator, Widget,
+    gdk,
 };
 use once_cell::sync::Lazy;
 
