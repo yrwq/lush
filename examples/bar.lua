@@ -1,5 +1,6 @@
 local lush = require("lush")
 local ui = lush.ui
+local scheduler = lush.scheduler
 local notif_center = require("examples.notifcenter")
 local control_center = require("examples.controlcenter")
 local music_popover = require("examples.musicpopover")
@@ -46,6 +47,82 @@ local music = music_popover.create({
   interval = 1,
 })
 
+local volume_osd = ui.window({
+  name = "volume-osd",
+  visible = false,
+  layer = "overlay",
+  anchors = { "top", "left", "right" },
+  margin_top = 48,
+  root = ui.centerbox({
+    class = "volume-osd-host",
+    children = {
+      ui.label({ format = "" }),
+      ui.hbox({
+        class = "volume-osd",
+        spacing = 8,
+        children = {
+          ui.label({
+            class = "volume-osd-icon",
+            class_bind = "data.audio.muted",
+            format_states = {
+              ["1"] = "󰝟",
+              ["0"] = "󰕾",
+              default = "󰕾",
+            },
+            format = "󰕾",
+          }),
+          ui.progress({
+            class = "volume-osd-progress",
+            bind = "data.audio.volume",
+            min = 0,
+            max = 100,
+          }),
+          ui.label({
+            class = "volume-osd-text",
+            class_bind = "data.audio.muted",
+            binds = {
+              ["v"] = "data.audio.volume",
+              ["m"] = "data.audio.muted",
+            },
+            format_states = {
+              ["1"] = "muted",
+              ["0"] = "{v}%",
+              default = "{v}%",
+            },
+            format = "{m}",
+          }),
+        },
+      }),
+      ui.label({ format = "" }),
+    },
+  }),
+})
+
+do
+  local hide_timer = nil
+
+  local function poke_osd()
+    lush.windows.set_visible("volume-osd", true)
+
+    if hide_timer ~= nil then
+      scheduler.cancel(hide_timer)
+      hide_timer = nil
+    end
+    hide_timer = scheduler.after(1.2, function()
+      lush.windows.set_visible("volume-osd", false)
+      hide_timer = nil
+    end)
+  end
+
+  lush.state.watch("data.audio.volume", function(_value)
+    poke_osd()
+  end, { immediate = false })
+
+  lush.state.watch("data.audio.muted", function(_value)
+    poke_osd()
+  end, { immediate = false })
+end
+
 local bar_window = ui.window({
   height = 30,
   exclusive = true,
@@ -62,7 +139,7 @@ local bar_window = ui.window({
             class = "tags",
             all_outputs = false,
             active_only = false,
-            -- count = 5,
+            count = 5,
             show_clients = true,
             clients_max_items = 4,
             clients_icon_size = 18,
@@ -240,7 +317,7 @@ local bar_window = ui.window({
   })
 })
 
-local windows = { bar_window, controls.window }
+local windows = { bar_window, controls.window, volume_osd }
 for _, win in ipairs(center.windows) do
   table.insert(windows, win)
 end

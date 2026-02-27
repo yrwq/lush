@@ -682,3 +682,42 @@ popover.tray-menu-popover button > box > label {
 .state-critical {
     border-color: var(--danger);
 }
+
+.volume-osd {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-soft);
+    border-radius: 0px;
+    padding: 8px 10px;
+}
+
+.volume-osd-host {
+    background: transparent;
+}
+
+.volume-osd-icon {
+    color: var(--accent);
+    min-width: 18px;
+}
+
+.volume-osd-progress {
+    min-width: 160px;
+}
+
+.volume-osd-progress trough {
+    background: var(--bg-soft);
+    min-height: 4px;
+    border: none;
+    border-radius: 0px;
+}
+
+.volume-osd-progress block.filled,
+.volume-osd-progress highlight {
+    background: var(--accent);
+    min-height: 4px;
+    border: none;
+    border-radius: 0px;
+}
+
+.volume-osd-text {
+    min-width: 48px;
+}
