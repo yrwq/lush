@@ -33,8 +33,8 @@ known requirements:
 - libudev
 
 ```bash
-# install via cargo
-cargo install --path .
+# install via cargo. `lush` was taken :(
+cargo install lushell
 ```
 
 ```bash
