@@ -32,12 +32,18 @@ pub fn start_evented(bus: SignalBus) -> Result<AudioWatcher, String> {
     bus.set("data.audio.sink", "");
 
     let (tx, rx) = async_channel::unbounded::<AudioSnapshot>();
-    super::evented::spawn_snapshot_drain(rx, move |snapshot| {
-        bus.batch(|| {
-            bus.set("data.audio.volume", &snapshot.volume.to_string());
-            bus.set("data.audio.muted", if snapshot.muted { "1" } else { "0" });
-            bus.set("data.audio.sink", &snapshot.sink);
-        });
+    glib::MainContext::default().spawn_local(async move {
+        while let Ok(snapshot) = rx.recv().await {
+            let mut latest = snapshot;
+            while let Ok(next) = rx.try_recv() {
+                latest = next;
+            }
+            bus.batch(|| {
+                bus.set("data.audio.volume", &latest.volume.to_string());
+                bus.set("data.audio.muted", if latest.muted { "1" } else { "0" });
+                bus.set("data.audio.sink", &latest.sink);
+            });
+        }
     });
 
     let mut evented = EventedProvider::new();
@@ -76,16 +82,32 @@ fn run_pulse_loop(
 
     wait_for_ready(&mainloop, &context, &stop)?;
     let refresh_pending = Rc::new(Cell::new(true));
-    install_subscriptions(&context, refresh_pending.clone());
+    let server_refresh_pending = Rc::new(Cell::new(true));
+    install_subscriptions(
+        &context,
+        refresh_pending.clone(),
+        server_refresh_pending.clone(),
+    );
+    let refresh_inflight = Rc::new(Cell::new(false));
     let last_snapshot: Rc<RefCell<Option<AudioSnapshot>>> = Rc::new(RefCell::new(None));
+    let default_sink_name = Rc::new(RefCell::new(String::new()));
 
     while !stop.load(Ordering::Relaxed) {
         match mainloop.borrow_mut().iterate(false) {
             IterateResult::Success(_) => {}
             IterateResult::Quit(_) | IterateResult::Err(_) => break,
         }
-        if refresh_pending.replace(false) {
-            refresh_default_sink(&context, tx.clone(), last_snapshot.clone());
+        if !refresh_inflight.get() && refresh_pending.replace(false) {
+            refresh_inflight.set(true);
+            let force_server_refresh = server_refresh_pending.replace(false);
+            refresh_default_sink(
+                &context,
+                tx.clone(),
+                last_snapshot.clone(),
+                default_sink_name.clone(),
+                force_server_refresh,
+                refresh_inflight.clone(),
+            );
         }
         thread::sleep(Duration::from_millis(12));
     }
@@ -116,11 +138,18 @@ fn wait_for_ready(
     Ok(())
 }
 
-fn install_subscriptions(context: &Rc<RefCell<Context>>, refresh_pending: Rc<Cell<bool>>) {
+fn install_subscriptions(
+    context: &Rc<RefCell<Context>>,
+    refresh_pending: Rc<Cell<bool>>,
+    server_refresh_pending: Rc<Cell<bool>>,
+) {
     context.borrow_mut().set_subscribe_callback(Some(Box::new(
         move |facility, _operation, _index| {
             if matches!(facility, Some(Facility::Sink) | Some(Facility::Server)) {
                 refresh_pending.set(true);
+            }
+            if matches!(facility, Some(Facility::Server)) {
+                server_refresh_pending.set(true);
             }
         },
     )));
@@ -134,10 +163,21 @@ fn refresh_default_sink(
     context: &Rc<RefCell<Context>>,
     tx: async_channel::Sender<AudioSnapshot>,
     last_snapshot: Rc<RefCell<Option<AudioSnapshot>>>,
+    default_sink_name: Rc<RefCell<String>>,
+    force_server_refresh: bool,
+    refresh_inflight: Rc<Cell<bool>>,
 ) {
+    let cached_sink_name = default_sink_name.borrow().clone();
+    if !force_server_refresh && !cached_sink_name.trim().is_empty() {
+        query_sink_snapshot(context, tx, last_snapshot, cached_sink_name, refresh_inflight);
+        return;
+    }
+
     let tx_for_server = tx.clone();
     let last_for_server = last_snapshot.clone();
     let context_for_server = context.clone();
+    let default_sink_for_server = default_sink_name.clone();
+    let inflight_for_server = refresh_inflight.clone();
     context
         .borrow()
         .introspect()
@@ -152,40 +192,54 @@ fn refresh_default_sink(
                         sink: String::new(),
                     },
                 );
+                inflight_for_server.set(false);
                 return;
             };
             let sink_name = default_sink_name.to_string();
-            let sink_name_for_query = sink_name.clone();
-            context_for_server
-                .borrow()
-                .introspect()
-                .get_sink_info_by_name(&sink_name_for_query, {
-                    let tx = tx.clone();
-                    let last_snapshot = last_snapshot.clone();
-                    move |result| {
-                        if let ListResult::Item(info) = result {
-                            let percent = (info.volume.avg().0 as f64
-                                / pulse::volume::Volume::NORMAL.0 as f64
-                                * 100.0)
-                                .round()
-                                .clamp(0.0, 150.0) as u32;
-                            let sink = info
-                                .description
-                                .as_ref()
-                                .map(|v| v.to_string())
-                                .unwrap_or_else(|| sink_name.clone());
-                            maybe_send_snapshot(
-                                &tx,
-                                &last_snapshot,
-                                AudioSnapshot {
-                                    volume: percent,
-                                    muted: info.mute,
-                                    sink,
-                                },
-                            );
-                        }
-                    }
-                });
+            *default_sink_for_server.borrow_mut() = sink_name.clone();
+            query_sink_snapshot(
+                &context_for_server,
+                tx.clone(),
+                last_snapshot.clone(),
+                sink_name,
+                inflight_for_server.clone(),
+            );
+        });
+}
+
+fn query_sink_snapshot(
+    context: &Rc<RefCell<Context>>,
+    tx: async_channel::Sender<AudioSnapshot>,
+    last_snapshot: Rc<RefCell<Option<AudioSnapshot>>>,
+    sink_name: String,
+    refresh_inflight: Rc<Cell<bool>>,
+) {
+    let sink_name_for_query = sink_name.clone();
+    context
+        .borrow()
+        .introspect()
+        .get_sink_info_by_name(&sink_name_for_query, move |result| {
+            if let ListResult::Item(info) = result {
+                let percent = (info.volume.avg().0 as f64 / pulse::volume::Volume::NORMAL.0 as f64
+                    * 100.0)
+                    .round()
+                    .clamp(0.0, 150.0) as u32;
+                let sink = info
+                    .description
+                    .as_ref()
+                    .map(|v| v.to_string())
+                    .unwrap_or_else(|| sink_name.clone());
+                maybe_send_snapshot(
+                    &tx,
+                    &last_snapshot,
+                    AudioSnapshot {
+                        volume: percent,
+                        muted: info.mute,
+                        sink,
+                    },
+                );
+            }
+            refresh_inflight.set(false);
         });
 }
 
