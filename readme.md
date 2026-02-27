@@ -7,9 +7,6 @@ lightweight, extensible wayland shell and widget framework. build completely cus
 
 ![preview](https://github.com/user-attachments/assets/1426008f-db10-4229-b508-0f88b395549f)
 
-please use [examples](./examples) as a reference til [docs](https://yrwq.github.io/lush) are ready
-
-if you are curious about the motivation and design decisions, i wrote a [blog post](https://yrwq.github.io/blog/2026-02-lush) about it
 
 ---
 
@@ -25,36 +22,9 @@ if you are curious about the motivation and design decisions, i wrote a [blog po
 
 ## quickstart
 
-known requirements:
+[docs](https://yrwq.github.io/lush/getting-started.html)
 
-- gtk4
-- gtk4-layer-shell
-- libpulse
-- libudev
-
-```bash
-# install via cargo. `lush` was taken :(
-cargo install lushell
-```
-
-```bash
-# start the daemon with default config location
-lush
-
-# start with a specific config
-lush -c examples/bar.lua
-```
-
-```bash
-# list windows
-lush list
-# toggle a window named 'bar'
-lush toggle bar
-# reload the whole config
-lush reload
-# hot reload css
-lush reload-css
-```
+[examples](./examples) 
 
 ## minimal example
 
@@ -89,17 +59,6 @@ ui.windows({
   })
 })
 ```
-
-## roadmap
-
-widgets:
-
-- [ ] entry
-
-data providers:
-
-- [ ] gpu usage
-- [ ] cpu, gpu temp
 
 ## notes
 
