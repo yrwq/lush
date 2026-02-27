@@ -182,3 +182,37 @@ ui.label({
 lush.windows.toggle("panel")
 lush.windows.set_visible("popup", true)
 ```
+
+### osd
+
+```lua
+local lush = require("lush")
+local ui = lush.ui
+
+local volume_osd = ui.window({
+  name = "volume-osd",
+  visible = false,
+  layer = "overlay",
+  anchors = { "top", "left", "right" },
+  margin_top = 48,
+  root = ui.hbox({
+    class = "volume-osd",
+    children = {
+      ui.progress({
+        bind = "data.audio.volume",
+        min = 0,
+        max = 100,
+      }),
+    },
+  }),
+})
+
+lush.osd.create({
+  window = volume_osd,
+  signals = {
+    "data.audio.volume",
+    "data.audio.muted",
+  },
+  timeout = 1200,
+})
+```

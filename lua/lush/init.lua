@@ -4,6 +4,7 @@ package.preload["lush.init"] = function()
     signal = require("lush.signal"),
     windows = require("lush.windows"),
     notifications = require("lush.notifications"),
+    osd = require("lush.osd"),
     scheduler = require("lush.scheduler"),
     process = require("lush.process"),
     audio = require("lush.audio"),

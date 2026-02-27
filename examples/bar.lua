@@ -1,6 +1,5 @@
 local lush = require("lush")
 local ui = lush.ui
-local scheduler = lush.scheduler
 local notif_center = require("examples.notifcenter")
 local control_center = require("examples.controlcenter")
 local music_popover = require("examples.musicpopover")
@@ -98,30 +97,14 @@ local volume_osd = ui.window({
   }),
 })
 
-do
-  local hide_timer = nil
-
-  local function poke_osd()
-    lush.windows.set_visible("volume-osd", true)
-
-    if hide_timer ~= nil then
-      scheduler.cancel(hide_timer)
-      hide_timer = nil
-    end
-    hide_timer = scheduler.after(1.2, function()
-      lush.windows.set_visible("volume-osd", false)
-      hide_timer = nil
-    end)
-  end
-
-  lush.state.watch("data.audio.volume", function(_value)
-    poke_osd()
-  end, { immediate = false })
-
-  lush.state.watch("data.audio.muted", function(_value)
-    poke_osd()
-  end, { immediate = false })
-end
+lush.osd.create({
+  window = volume_osd,
+  signals = {
+    "data.audio.volume",
+    "data.audio.muted",
+  },
+  timeout = 1200,
+})
 
 local bar_window = ui.window({
   height = 30,

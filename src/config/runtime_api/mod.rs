@@ -6,6 +6,7 @@ mod audio;
 mod data;
 mod lua_modules;
 mod notifications;
+mod osd;
 mod process;
 mod scheduler;
 mod state;
@@ -18,6 +19,7 @@ pub fn install_lush_api(lua: &Lua, bridge: LuaStateBridge) -> Result<()> {
     audio::install(lua)?;
     windows::install(lua, bridge.clone())?;
     notifications::install(lua, bridge.clone())?;
+    osd::install(lua, bridge.clone())?;
     process::install(lua)?;
     scheduler::install(lua)?;
     Ok(())

@@ -169,7 +169,13 @@ fn refresh_default_sink(
 ) {
     let cached_sink_name = default_sink_name.borrow().clone();
     if !force_server_refresh && !cached_sink_name.trim().is_empty() {
-        query_sink_snapshot(context, tx, last_snapshot, cached_sink_name, refresh_inflight);
+        query_sink_snapshot(
+            context,
+            tx,
+            last_snapshot,
+            cached_sink_name,
+            refresh_inflight,
+        );
         return;
     }
 
