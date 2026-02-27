@@ -18,6 +18,7 @@ type SignalListener = Rc<RefCell<Box<dyn FnMut(&SignalEvent) -> bool>>>;
 pub struct SignalBus {
     values: Rc<RefCell<HashMap<String, String>>>,
     listeners: Rc<RefCell<BTreeMap<u64, SignalListener>>>,
+    keyed_listeners: Rc<RefCell<HashMap<String, BTreeMap<u64, SignalListener>>>>,
     next_listener_id: Rc<Cell<u64>>,
     pending: Rc<RefCell<VecDeque<String>>>,
     pending_set: Rc<RefCell<HashSet<String>>>,
@@ -90,6 +91,17 @@ impl SignalBus {
                 .iter()
                 .map(|(id, cb)| (*id, cb.clone()))
                 .collect();
+            let keyed_listeners: Vec<(u64, SignalListener)> = self
+                .keyed_listeners
+                .borrow()
+                .get(&event.name)
+                .map(|bucket| {
+                    bucket
+                        .iter()
+                        .map(|(id, cb)| (*id, cb.clone()))
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
 
             let mut stale = Vec::new();
             for (id, callback) in listeners {
@@ -97,11 +109,28 @@ impl SignalBus {
                     stale.push(id);
                 }
             }
+            let mut stale_keyed = Vec::new();
+            for (id, callback) in keyed_listeners {
+                if !(callback.borrow_mut())(&event) {
+                    stale_keyed.push(id);
+                }
+            }
 
             if !stale.is_empty() {
                 let mut refs = self.listeners.borrow_mut();
                 for id in stale {
                     refs.remove(&id);
+                }
+            }
+            if !stale_keyed.is_empty() {
+                let mut buckets = self.keyed_listeners.borrow_mut();
+                if let Some(bucket) = buckets.get_mut(&event.name) {
+                    for id in stale_keyed {
+                        bucket.remove(&id);
+                    }
+                    if bucket.is_empty() {
+                        buckets.remove(&event.name);
+                    }
                 }
             }
         }
@@ -123,6 +152,20 @@ impl SignalBus {
         self.next_listener_id.set(id);
         self.listeners
             .borrow_mut()
+            .insert(id, Rc::new(RefCell::new(Box::new(callback))));
+        id
+    }
+
+    pub fn subscribe_key<F>(&self, name: &str, callback: F) -> u64
+    where
+        F: FnMut(&SignalEvent) -> bool + 'static,
+    {
+        let id = self.next_listener_id.get().saturating_add(1);
+        self.next_listener_id.set(id);
+        let mut buckets = self.keyed_listeners.borrow_mut();
+        buckets
+            .entry(name.to_string())
+            .or_default()
             .insert(id, Rc::new(RefCell::new(Box::new(callback))));
         id
     }

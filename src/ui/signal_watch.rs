@@ -4,9 +4,8 @@ pub fn watch_signal<F>(bus: &SignalBus, signal_name: String, mut on_signal: F) -
 where
     F: FnMut(&str) -> glib::ControlFlow + 'static,
 {
-    bus.subscribe(move |event| {
-        if event.name == signal_name && matches!(on_signal(&event.value), glib::ControlFlow::Break)
-        {
+    bus.subscribe_key(&signal_name, move |event| {
+        if matches!(on_signal(&event.value), glib::ControlFlow::Break) {
             return false;
         }
         true
