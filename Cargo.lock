@@ -1338,8 +1338,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "lush"
-version = "0.1.0"
+name = "lushell"
+version = "0.2.1"
 dependencies = [
  "async-channel",
  "chrono",

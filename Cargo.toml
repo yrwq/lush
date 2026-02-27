@@ -1,8 +1,15 @@
 [package]
-name = "lush"
-version = "0.1.0"
+name = "lushell"
+version = "0.2.1"
 edition = "2024"
 license = "MIT"
+description = "Lua scripted gtk layer-shell widgets"
+documentation = "https://yrwq.github.io/lush"
+readme = "readme.md"
+homepage = "https://github.com/yrwq/lush"
+repository = "https://github.com/yrwq/lush"
+keywords = ["wayland", "gtk4", "bar", "shell", "widgets", "lua"]
+categories = ["gui", "config"]
 
 [[bin]]
 name = "lush"
