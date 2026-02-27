@@ -13,6 +13,7 @@ use std::thread;
 use crate::runtime::compositor::CompositorStateSnapshot;
 
 use super::broadcast::BroadcastHub;
+use super::common::{self, EventLoopStep};
 
 pub fn available() -> bool {
     let Some(path) = ipc::socket_path() else {
@@ -34,7 +35,7 @@ pub fn subscribe_state(output_selector: Option<&str>) -> Option<Receiver<Composi
         return None;
     }
 
-    let (key, selector) = selector_key_and_filter(output_selector);
+    let (key, selector) = common::selector_key_and_filter(output_selector);
     let service = state_service_for_key(&key, selector)?;
     service.subscribe()
 }
@@ -44,40 +45,30 @@ fn state_service_for_key(
     selector: Option<String>,
 ) -> Option<Arc<BroadcastHub<CompositorStateSnapshot>>> {
     let services = STATE_SERVICES.get_or_init(|| Mutex::new(HashMap::new()));
-    let mut services = services.lock().ok()?;
-    if let Some(existing) = services.get(key) {
-        return Some(existing.clone());
-    }
-
-    let service = Arc::new(BroadcastHub::new());
-    let service_for_thread = service.clone();
-    thread::Builder::new()
-        .name("sway-state-listener".to_string())
-        .spawn(move || {
-            let mut event_stream = match ipc::subscribe_events(["workspace", "window"]) {
-                Some(v) => v,
-                None => return,
-            };
-            let selector = selector.as_deref();
-
-            if let Some(snapshot) = collect_state(selector) {
-                service_for_thread.publish(snapshot);
-            }
-
-            loop {
-                if ipc::read_message(&mut event_stream).is_err() {
-                    break;
-                }
-                let Some(snapshot) = collect_state(selector) else {
-                    continue;
+    common::state_service_for_key(services, key, move |service| {
+        thread::Builder::new()
+            .name("sway-state-listener".to_string())
+            .spawn(move || {
+                let mut event_stream = match ipc::subscribe_events(["workspace", "window"]) {
+                    Some(v) => v,
+                    None => return,
                 };
-                service_for_thread.publish(snapshot);
-            }
-        })
-        .ok()?;
-
-    services.insert(key.to_string(), service.clone());
-    Some(service)
+                let selector = selector.as_deref();
+                common::run_refresh_loop(
+                    &service,
+                    || collect_state(selector),
+                    || {
+                        if ipc::read_message(&mut event_stream).is_ok() {
+                            EventLoopStep::Refresh
+                        } else {
+                            EventLoopStep::Break
+                        }
+                    },
+                );
+            })
+            .ok()?;
+        Some(())
+    })
 }
 
 fn collect_state(output_selector: Option<&str>) -> Option<CompositorStateSnapshot> {
@@ -87,16 +78,6 @@ fn collect_state(output_selector: Option<&str>) -> Option<CompositorStateSnapsho
         workspace,
         toplevels,
     })
-}
-
-pub(super) fn selector_key_and_filter(output_selector: Option<&str>) -> (String, Option<String>) {
-    let key = output_selector
-        .map(str::trim)
-        .filter(|v| !v.is_empty())
-        .unwrap_or("")
-        .to_string();
-    let filter = (!key.is_empty()).then_some(key.clone());
-    (key, filter)
 }
 
 pub(super) fn resolve_selected_output(selector: &str, workspaces: &Value) -> Option<String> {

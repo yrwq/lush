@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
+use crate::runtime::compositor::backends::common;
 use async_channel::Sender;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -41,20 +42,20 @@ pub(super) fn snapshot_from_latest(
     latest: &LatestSnapshots,
     selector: Option<&str>,
 ) -> RiverSnapshot {
-    let Some(selector) = selector.map(str::trim) else {
+    let Some(selector) = selector else {
         return latest.default.clone();
     };
-    if selector.is_empty() || selector.eq_ignore_ascii_case("focused") {
+    if common::selector_is_focused_or_empty(selector) {
         return latest.default.clone();
     }
-    if let Ok(index) = selector.parse::<usize>() {
+    if let Some(index) = common::selector_index(selector) {
         return latest
             .by_index
             .get(index)
             .cloned()
             .unwrap_or_else(|| latest.default.clone());
     }
-    if let Ok(global) = selector.parse::<u32>() {
+    if let Some(global) = common::selector_global(selector) {
         return latest
             .by_global
             .get(&global)
@@ -62,9 +63,12 @@ pub(super) fn snapshot_from_latest(
             .unwrap_or_else(|| latest.default.clone());
     }
 
+    let Some(target) = common::selector_target_lower(selector) else {
+        return latest.default.clone();
+    };
     latest
         .by_name
-        .get(&selector.to_lowercase())
+        .get(&target)
         .cloned()
         .unwrap_or_else(|| latest.default.clone())
 }

@@ -120,7 +120,7 @@ local bar_window = ui.window({
           ui.workspaces({
             output = "focused",
             class = "tags",
-            all_outputs = false,
+            all_outputs = true,
             active_only = false,
             count = 5,
             show_clients = true,

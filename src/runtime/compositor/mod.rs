@@ -1,6 +1,6 @@
 use async_channel::Receiver;
 
-mod backends;
+pub(crate) mod backends;
 mod toplevel;
 mod wlr;
 

@@ -9,6 +9,7 @@ use std::thread;
 use std::time::Duration;
 
 use super::broadcast::BroadcastHub;
+use super::common::{self, EventLoopStep};
 use crate::runtime::compositor::{
     CompositorSnapshot, CompositorStateSnapshot, FocusedWindowSnapshot, ToplevelEntry,
 };
@@ -39,7 +40,7 @@ pub fn subscribe_state(output_selector: Option<&str>) -> Option<Receiver<Composi
         return None;
     }
 
-    let (key, selector) = selector_key_and_filter(output_selector);
+    let (key, selector) = common::selector_key_and_filter(output_selector);
     let service = state_service_for_key(&key, selector)?;
     service.subscribe()
 }
@@ -49,54 +50,47 @@ fn state_service_for_key(
     selector: Option<String>,
 ) -> Option<Arc<BroadcastHub<CompositorStateSnapshot>>> {
     let services = STATE_SERVICES.get_or_init(|| Mutex::new(HashMap::new()));
-    let mut services = services.lock().ok()?;
-    if let Some(existing) = services.get(key) {
-        return Some(existing.clone());
-    }
-
-    let service = Arc::new(BroadcastHub::new());
-    let service_for_thread = service.clone();
-    thread::Builder::new()
-        .name("hyprland-state-listener".to_string())
-        .spawn(move || {
-            let selector = selector.as_deref();
-            if let Some(snapshot) = collect_state(selector) {
-                service_for_thread.publish(snapshot);
-            }
-
-            loop {
-                let Some(stream) = connect_listener_socket() else {
-                    thread::sleep(Duration::from_millis(800));
-                    if let Some(snapshot) = collect_state(selector) {
-                        service_for_thread.publish(snapshot);
-                    }
-                    continue;
-                };
-
-                let mut reader = BufReader::new(stream);
-                let mut line = String::new();
+    common::state_service_for_key(services, key, move |service| {
+        thread::Builder::new()
+            .name("hyprland-state-listener".to_string())
+            .spawn(move || {
+                let selector = selector.as_deref();
                 loop {
-                    line.clear();
-                    match reader.read_line(&mut line) {
-                        Ok(0) => break,
-                        Ok(_) => {
-                            if should_refresh_for_event(&line)
-                                && let Some(snapshot) = collect_state(selector)
-                            {
-                                service_for_thread.publish(snapshot);
-                            }
+                    let Some(stream) = connect_listener_socket() else {
+                        thread::sleep(Duration::from_millis(800));
+                        if let Some(snapshot) = collect_state(selector) {
+                            service.publish(snapshot);
                         }
-                        Err(_) => break,
-                    }
+                        continue;
+                    };
+
+                    let mut reader = BufReader::new(stream);
+                    let mut line = String::new();
+                    common::run_refresh_loop(
+                        &service,
+                        || collect_state(selector),
+                        || {
+                            line.clear();
+                            match reader.read_line(&mut line) {
+                                Ok(0) => EventLoopStep::Break,
+                                Ok(_) => {
+                                    if should_refresh_for_event(&line) {
+                                        EventLoopStep::Refresh
+                                    } else {
+                                        EventLoopStep::Continue
+                                    }
+                                }
+                                Err(_) => EventLoopStep::Break,
+                            }
+                        },
+                    );
+
+                    thread::sleep(Duration::from_millis(120));
                 }
-
-                thread::sleep(Duration::from_millis(120));
-            }
-        })
-        .ok()?;
-
-    services.insert(key.to_string(), service.clone());
-    Some(service)
+            })
+            .ok()?;
+        Some(())
+    })
 }
 
 fn collect_state(output_selector: Option<&str>) -> Option<CompositorStateSnapshot> {
@@ -278,12 +272,12 @@ fn resolve_selected_monitor_json(
     monitors: &Value,
     active_workspace: Option<&Value>,
 ) -> Option<String> {
-    let selector = output_selector.map(str::trim).unwrap_or("");
+    let selector = common::normalize_selector(output_selector);
     if selector.is_empty() {
         return None;
     }
     let items = monitors.as_array()?;
-    if selector.eq_ignore_ascii_case("focused") {
+    if common::selector_is_focused_or_empty(&selector) {
         return items
             .iter()
             .find(|m| m.get("focused").and_then(Value::as_bool) == Some(true))
@@ -297,7 +291,7 @@ fn resolve_selected_monitor_json(
                     .map(str::to_string)
             });
     }
-    if let Ok(index) = selector.parse::<usize>() {
+    if let Some(index) = common::selector_index(&selector) {
         let mut names: Vec<String> = items
             .iter()
             .filter_map(|m| m.get("name").and_then(Value::as_str))
@@ -306,7 +300,7 @@ fn resolve_selected_monitor_json(
         names.sort();
         return names.get(index).cloned();
     }
-    Some(selector.to_string())
+    Some(selector)
 }
 
 fn monitor_names_by_id_json(monitors: &Value) -> HashMap<i128, String> {
@@ -338,16 +332,6 @@ fn selected_monitor_matches_json(
         .get(&monitor_id)
         .map(|m| m.eq_ignore_ascii_case(selected))
         .unwrap_or(false)
-}
-
-fn selector_key_and_filter(output_selector: Option<&str>) -> (String, Option<String>) {
-    let key = output_selector
-        .map(str::trim)
-        .filter(|v| !v.is_empty())
-        .unwrap_or("")
-        .to_string();
-    let filter = (!key.is_empty()).then_some(key.clone());
-    (key, filter)
 }
 
 fn connect_listener_socket() -> Option<UnixStream> {

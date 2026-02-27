@@ -7,6 +7,7 @@ use wayland_client::{Proxy, QueueHandle};
 use crate::protocols::river_status::river_status_unstable_v1::{
     zriver_output_status_v1, zriver_seat_status_v1, zriver_status_manager_v1,
 };
+use crate::runtime::compositor::backends::common;
 
 use super::model::RiverSnapshot;
 use super::model::{LatestSnapshotsStore, OutputState, SnapshotListeners};
@@ -167,27 +168,26 @@ impl RiverState {
         focused: Option<&wayland_client::backend::ObjectId>,
     ) -> RiverSnapshot {
         let source_output = match selector.and_then(|s| {
-            let trimmed = s.trim();
-            if trimmed.is_empty() || trimmed.eq_ignore_ascii_case("focused") {
+            if common::selector_is_focused_or_empty(s) {
                 return None;
             }
-            if let Ok(index) = trimmed.parse::<usize>() {
+            if let Some(index) = common::selector_index(s) {
                 return self.output_order.get(index);
             }
-            if let Ok(global_name) = trimmed.parse::<u32>() {
+            if let Some(global_name) = common::selector_global(s) {
                 return self
                     .output_global_name_by_id
                     .iter()
                     .find_map(|(id, g)| if *g == global_name { Some(id) } else { None });
             }
-            let target = trimmed.to_lowercase();
+            let target = common::selector_target_lower(s)?;
             self.output_name_by_id
                 .iter()
-                .find_map(|(id, name)| (name.to_lowercase() == target).then_some(id))
+                .find_map(|(id, name)| common::selector_name_eq(name, &target).then_some(id))
                 .or_else(|| {
-                    self.output_name_by_id
-                        .iter()
-                        .find_map(|(id, name)| name.to_lowercase().contains(&target).then_some(id))
+                    self.output_name_by_id.iter().find_map(|(id, name)| {
+                        common::selector_name_contains(name, &target).then_some(id)
+                    })
                 })
         }) {
             Some(id) => Some(id),

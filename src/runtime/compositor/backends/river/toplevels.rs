@@ -10,6 +10,7 @@ use crate::protocols::wlr_foreign_toplevel_management::wlr_foreign_toplevel_mana
 };
 
 use crate::runtime::compositor::ToplevelEntry;
+use crate::runtime::compositor::backends::common;
 
 pub(super) fn subscribe(output_selector: Option<&str>) -> Option<Receiver<Vec<ToplevelEntry>>> {
     if !crate::runtime::river::river_status_available() {
@@ -139,8 +140,8 @@ impl RiverToplevelState {
     }
 
     fn resolve_selected_output_id(&self) -> Option<wayland_client::backend::ObjectId> {
-        let selector = self.selector.as_deref().unwrap_or("focused").trim();
-        if selector.is_empty() || selector.eq_ignore_ascii_case("focused") {
+        let selector = self.selector.as_deref().unwrap_or("focused");
+        if common::selector_is_focused_or_empty(selector) {
             let focused = crate::runtime::river::focused_output_name()?;
             return self
                 .output_name_by_id
@@ -148,25 +149,23 @@ impl RiverToplevelState {
                 .find_map(|(id, name)| name.eq_ignore_ascii_case(&focused).then_some(id.clone()));
         }
 
-        if let Ok(index) = selector.parse::<usize>() {
+        if let Some(index) = common::selector_index(selector) {
             return self.output_order.get(index).cloned();
         }
-        if let Ok(global) = selector.parse::<u32>() {
+        if let Some(global) = common::selector_global(selector) {
             return self
                 .output_global_name_by_id
                 .iter()
                 .find_map(|(id, g)| (*g == global).then_some(id.clone()));
         }
 
-        let target = selector.to_ascii_lowercase();
+        let target = common::selector_target_lower(selector)?;
         self.output_name_by_id
             .iter()
-            .find_map(|(id, name)| (name.to_ascii_lowercase() == target).then_some(id.clone()))
+            .find_map(|(id, name)| common::selector_name_eq(name, &target).then_some(id.clone()))
             .or_else(|| {
                 self.output_name_by_id.iter().find_map(|(id, name)| {
-                    name.to_ascii_lowercase()
-                        .contains(&target)
-                        .then_some(id.clone())
+                    common::selector_name_contains(name, &target).then_some(id.clone())
                 })
             })
     }
