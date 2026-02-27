@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "ayu";
             const default_dark_theme = "ayu";
-            window.path_to_searchindex_js = "searchindex-ffd1b501.js";
+            window.path_to_searchindex_js = "searchindex-bbe08d1e.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-16b21114.js"></script>
@@ -233,6 +233,7 @@ lush.data.use("memory", { interval = 3 })
 lush.data.use("network", { interval = 1, iface = "wlan0" }) -- optional iface
 lush.data.use("disk", { interval = 10, path = "/" }) -- optional path
 lush.data.use("battery")
+lush.data.use("audio")
 
 -- event driven with fallback refresh
 lush.data.use("bluetooth", { interval = 120 })
@@ -331,6 +332,37 @@ ui.label({
 <h3 id="toggle-windows-from-lua"><a class="header" href="#toggle-windows-from-lua">toggle windows from Lua</a></h3>
 <pre><code class="language-lua">lush.windows.toggle("panel")
 lush.windows.set_visible("popup", true)
+</code></pre>
+<h3 id="osd"><a class="header" href="#osd">osd</a></h3>
+<pre><code class="language-lua">local lush = require("lush")
+local ui = lush.ui
+
+local volume_osd = ui.window({
+  name = "volume-osd",
+  visible = false,
+  layer = "overlay",
+  anchors = { "top", "left", "right" },
+  margin_top = 48,
+  root = ui.hbox({
+    class = "volume-osd",
+    children = {
+      ui.progress({
+        bind = "data.audio.volume",
+        min = 0,
+        max = 100,
+      }),
+    },
+  }),
+})
+
+lush.osd.create({
+  window = volume_osd,
+  signals = {
+    "data.audio.volume",
+    "data.audio.muted",
+  },
+  timeout = 1200,
+})
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="widgets"><a class="header" href="#widgets">widgets</a></h1>
