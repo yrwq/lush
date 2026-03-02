@@ -6,10 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use glib::MainContext;
+use gtk4::gdk::Display;
 use gtk4::prelude::*;
 use gtk4::{
     Box as GBox, EventControllerScroll, EventControllerScrollFlags, GestureClick, Image, Label,
-    Orientation, Widget,
+    Orientation, TextDirection, Widget,
 };
 
 use crate::config::{ClickBindings, DockClickAction, WidgetConfig, WidgetProps};
@@ -113,8 +114,12 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
                     image.add_css_class("dock-image");
                     image.set_pixel_size(render_cfg.icon_size);
                     match image_source {
-                        images::ImageSource::File(path) => image.set_from_file(Some(path)),
-                        images::ImageSource::IconName(name) => image.set_icon_name(Some(&name)),
+                        images::ImageSource::File(path) => {
+                            set_image_from_path(&image, &path, render_cfg.icon_size)
+                        }
+                        images::ImageSource::IconName(name) => {
+                            set_image_from_icon(&image, &name, render_cfg.icon_size)
+                        }
                     }
                     item.append(&image);
                 }
@@ -262,4 +267,39 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
     let widget: Widget = container.upcast();
     finalize_widget(&widget, cfg, ctx.bus, true);
     widget
+}
+
+fn set_image_from_path(image: &Image, path: &str, size: i32) {
+    let size = size.max(1);
+    let Ok(pixbuf) = gdk_pixbuf::Pixbuf::from_file_at_scale(path, size, size, true) else {
+        set_image_from_icon(image, "image-missing-symbolic", size);
+        return;
+    };
+    let texture = gtk4::gdk::Texture::for_pixbuf(&pixbuf);
+    image.set_paintable(Some(&texture));
+}
+
+fn set_image_from_icon(image: &Image, icon_name: &str, size: i32) {
+    let Some(display) = Display::default() else {
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
+        return;
+    };
+    let theme = gtk4::IconTheme::for_display(&display);
+    let icon = theme.lookup_icon(
+        icon_name,
+        &[],
+        size.max(1),
+        1,
+        TextDirection::Ltr,
+        gtk4::IconLookupFlags::empty(),
+    );
+    let Some(file) = icon.file() else {
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
+        return;
+    };
+    let Some(path) = file.path() else {
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
+        return;
+    };
+    set_image_from_path(image, path.to_string_lossy().as_ref(), size);
 }
