@@ -41,8 +41,8 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
     let syncing_from_bus = Rc::new(Cell::new(false));
     let dragging = Rc::new(Cell::new(false));
 
-    if let Some(bind_name) = props.bind.clone() {
-        let input_bind = props.input_bind.clone();
+    let write_bind = props.input_bind.clone().or_else(|| props.bind.clone());
+    if let Some(target_bind) = write_bind.clone() {
         let bus_for_drag = ctx.bus.clone();
         let syncing_for_drag = syncing_from_bus.clone();
         let dragging_for_change = dragging.clone();
@@ -50,12 +50,9 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
             if syncing_for_drag.get() || !dragging_for_change.get() {
                 return;
             }
-            let Some(target_bind) = input_bind.as_deref() else {
-                return;
-            };
             publish_slider_value(
                 &bus_for_drag,
-                target_bind,
+                &target_bind,
                 scale,
                 min,
                 max,
@@ -64,7 +61,9 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
                 &syncing_for_drag,
             );
         });
+    }
 
+    if let Some(bind_name) = props.bind.clone() {
         let slider = slider.clone();
         let syncing_for_watch = syncing_from_bus.clone();
         watch_signal(ctx.bus, bind_name, move |value| {
@@ -90,7 +89,7 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
         let syncing_for_release = syncing_from_bus.clone();
         let slider_for_release = slider.clone();
         let bus_for_release = ctx.bus.clone();
-        let bind_for_release = props.input_bind.clone();
+        let bind_for_release = write_bind.clone();
         click.connect_released(move |_, _, _, _| {
             dragging_for_release.set(false);
             let Some(bind_name) = bind_for_release.as_deref() else {
@@ -120,7 +119,7 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
     );
     let weak = slider.downgrade();
     let bus_for_scroll = ctx.bus.clone();
-    let bind_for_scroll = props.input_bind.clone();
+    let bind_for_scroll = write_bind;
     let syncing_for_scroll = syncing_from_bus.clone();
     scroll.connect_scroll(move |_, dx, dy| {
         let Some(slider) = weak.upgrade() else {

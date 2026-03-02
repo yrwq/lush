@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
-use gtk4::prelude::*;
 use gtk4::ApplicationWindow;
+use gtk4::prelude::*;
 
 use crate::config::WindowConfig;
 use crate::runtime::lua_runtime::{AppCommand, LuaRuntime};

@@ -220,7 +220,7 @@ ui.label({
 - `inverted`: fills opposite direction when true
 
 ### `slider`
-- fields: `bind`, `value`, `min`, `max`, `step`, `scroll_step`, `orientation`, `inverted`, `draw_value`, `digits`
+- fields: `bind`, `input_bind`, `value`, `min`, `max`, `step`, `scroll_step`, `orientation`, `inverted`, `draw_value`, `digits`
 - defaults:
   - `min = 0`
   - `max = 100`
@@ -230,7 +230,8 @@ ui.label({
   - `orientation = "horizontal"`
   - `draw_value = false`
   - `digits = 0`
-- reads initial value from `bind`, and writes back to the same key on user drag.
+- reads from `bind`.
+- writes user changes to `input_bind` when set, otherwise writes back to `bind`.
 - mouse wheel changes slider value by `scroll_step` (up increases, down decreases).
 - `digits` controls numeric precision for emitted string values (`0..6`).
 

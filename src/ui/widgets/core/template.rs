@@ -61,6 +61,7 @@ pub fn expand_widget_template(cfg: &mut WidgetConfig, base: &str, index: usize) 
         WidgetProps::Progress(props) => expand_progress_props(props, base, &item_ref, &item_index),
         WidgetProps::Slider(props) => {
             props.bind = replace_opt(props.bind.take(), base, &item_ref, &item_index);
+            props.input_bind = replace_opt(props.input_bind.take(), base, &item_ref, &item_index);
             props.orientation = replace_opt(props.orientation.take(), base, &item_ref, &item_index);
         }
         WidgetProps::Popover(props) => {
