@@ -5,9 +5,10 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use glib::MainContext;
+use gtk4::gdk::Display;
 use gtk4::Align;
 use gtk4::prelude::*;
-use gtk4::{Box as GBox, GestureClick, Image, Label, Orientation, Widget};
+use gtk4::{Box as GBox, GestureClick, Image, Label, Orientation, TextDirection, Widget};
 
 use crate::config::{IconifyRule, WidgetConfig, WidgetProps};
 use crate::runtime::compositor::{self, ToplevelEntry};
@@ -412,9 +413,19 @@ fn update_client_icons(
                     .and_then(parse_image_source)
                     .or_else(|| default_image_source(entry));
                 match source {
-                    Some(ClientImageSource::File(path)) => image.set_from_file(Some(path)),
-                    Some(ClientImageSource::IconName(name)) => image.set_icon_name(Some(&name)),
-                    None => image.set_icon_name(Some("application-x-executable-symbolic")),
+                    Some(ClientImageSource::File(path)) => {
+                        set_client_image_from_path(&image, &path, cfg.icon_size)
+                    }
+                    Some(ClientImageSource::IconName(name)) => {
+                        set_client_image_from_icon(&image, &name, cfg.icon_size)
+                    }
+                    None => {
+                        set_client_image_from_icon(
+                            &image,
+                            "application-x-executable-symbolic",
+                            cfg.icon_size,
+                        )
+                    }
                 }
                 row.append(&image);
             }
@@ -432,6 +443,41 @@ fn update_client_icons(
 enum ClientImageSource {
     File(String),
     IconName(String),
+}
+
+fn set_client_image_from_path(image: &Image, path: &str, size: i32) {
+    let size = size.max(1);
+    let Ok(pixbuf) = gdk_pixbuf::Pixbuf::from_file_at_scale(path, size, size, true) else {
+        set_client_image_from_icon(image, "application-x-executable-symbolic", size);
+        return;
+    };
+    let texture = gtk4::gdk::Texture::for_pixbuf(&pixbuf);
+    image.set_paintable(Some(&texture));
+}
+
+fn set_client_image_from_icon(image: &Image, icon_name: &str, size: i32) {
+    let Some(display) = Display::default() else {
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
+        return;
+    };
+    let theme = gtk4::IconTheme::for_display(&display);
+    let icon = theme.lookup_icon(
+        icon_name,
+        &[],
+        size.max(1),
+        1,
+        TextDirection::Ltr,
+        gtk4::IconLookupFlags::empty(),
+    );
+    let Some(file) = icon.file() else {
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
+        return;
+    };
+    let Some(path) = file.path() else {
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
+        return;
+    };
+    set_client_image_from_path(image, path.to_string_lossy().as_ref(), size);
 }
 
 fn default_image_source(entry: &ToplevelEntry) -> Option<ClientImageSource> {
