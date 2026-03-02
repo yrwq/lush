@@ -11,11 +11,7 @@ function M.create(opts)
   local margin_top = opts.margin_top or 10
   local margin_right = opts.margin_right or 8
 
-  local suppress_volume_sync = false
-  local suppress_volume_apply = false
-  local suppress_volume_sync_timer = nil
   local volume_apply_timer = nil
-  local audio_ready = false
 
   local function cancel_timer(timer_id)
     if timer_id ~= nil then
@@ -24,58 +20,9 @@ function M.create(opts)
     return nil
   end
 
-  local function suppress_volume_sync_briefly(seconds)
-    suppress_volume_sync = true
-    suppress_volume_sync_timer = cancel_timer(suppress_volume_sync_timer)
-    suppress_volume_sync_timer = scheduler.after(seconds, function()
-      suppress_volume_sync = false
-      suppress_volume_sync_timer = nil
-    end)
-  end
-
-  local function ensure_control_defaults()
-    local vol_now = tonumber(lush.state.get("control.audio.volume", ""))
-    if vol_now == nil then
-      local data_volume = tonumber(lush.state.get("data.audio.volume", ""))
-      local sink_name = tostring(lush.state.get("data.audio.sink", "") or "")
-      if data_volume == nil or sink_name == "" then
-        return
-      end
-      suppress_volume_apply = true
-      lush.state.set("control.audio.volume", math.max(0, math.min(150, math.floor(data_volume + 0.5))))
-    end
-  end
-
-  ensure_control_defaults()
-
-  lush.state.watch("data.audio.sink", function(value)
-    audio_ready = tostring(value or "") ~= ""
-    ensure_control_defaults()
-  end, { immediate = true })
-
-  lush.state.watch("data.audio.volume", function(value)
-    if suppress_volume_sync or not audio_ready then
-      return
-    end
-    local n = tonumber(value or "")
-    if n == nil then
-      return
-    end
-    local clamped = math.max(0, math.min(150, math.floor(n + 0.5)))
-    local current = tonumber(lush.state.get("control.audio.volume", "0")) or -1
-    if current == clamped then
-      return
-    end
-    suppress_volume_apply = true
-    lush.state.set("control.audio.volume", clamped)
-  end, { immediate = true })
-
-  lush.state.watch("control.audio.volume", function(value)
-    if suppress_volume_apply then
-      suppress_volume_apply = false
-      return
-    end
-    if not audio_ready then
+  lush.state.watch("control.audio.volume.input", function(value)
+    local sink_name = tostring(lush.state.get("data.audio.sink", "") or "")
+    if sink_name == "" then
       return
     end
     local n = tonumber(value)
@@ -83,7 +30,6 @@ function M.create(opts)
       return
     end
     local clamped = math.max(0, math.min(150, math.floor(n + 0.5)))
-    suppress_volume_sync_briefly(0.25)
     volume_apply_timer = cancel_timer(volume_apply_timer)
     volume_apply_timer = scheduler.after(0.08, function()
       lush.audio.set_volume(clamped)
@@ -134,7 +80,8 @@ function M.create(opts)
                 }),
                 ui.slider({
                   class = "control-slider",
-                  bind = "control.audio.volume",
+                  bind = "data.audio.volume",
+                  input_bind = "control.audio.volume.input",
                   min = 0,
                   max = 150,
                   step = 5,
@@ -145,7 +92,7 @@ function M.create(opts)
                 ui.label({
                   class = "control-value",
                   binds = {
-                    ["vol"] = "control.audio.volume",
+                    ["vol"] = "data.audio.volume",
                   },
                   format = "{vol}%",
                   halign = "end",

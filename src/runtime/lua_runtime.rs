@@ -4,7 +4,6 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 use std::rc::Rc;
-use std::time::Duration;
 
 use super::data::{
     self, CpuTotalsState, NetworkTotalsState, Provider, ProviderStartContext, ProviderStartOptions,
@@ -36,13 +35,6 @@ struct DataProviderState {
     handle: Option<data::ProviderHandle>,
 }
 
-#[derive(Clone, Debug, Default)]
-struct OsdBindingState {
-    signals: Vec<String>,
-    timeout_ms: u64,
-    active: bool,
-}
-
 #[derive(Clone, Default)]
 pub struct LuaStateBridge {
     bus: Rc<RefCell<Option<SignalBus>>>,
@@ -52,8 +44,6 @@ pub struct LuaStateBridge {
     pending_app_commands: Rc<RefCell<VecDeque<AppCommand>>>,
     dispatching_app_commands: Rc<Cell<bool>>,
     window_visibility: Rc<RefCell<HashMap<String, bool>>>,
-    osd_bindings: Rc<RefCell<HashMap<String, OsdBindingState>>>,
-    osd_hide_timers: Rc<RefCell<HashMap<String, glib::SourceId>>>,
     data_providers: Rc<RefCell<HashMap<Provider, DataProviderState>>>,
     notifications_requested: Rc<Cell<bool>>,
     cpu_prev_totals: CpuTotalsState,
@@ -68,7 +58,6 @@ impl LuaStateBridge {
         *self.bus.borrow_mut() = Some(bus);
         self.start_active_data_providers();
         self.start_requested_notifications_runtime();
-        self.start_active_osd_bindings();
     }
 
     pub fn set(&self, name: &str, value: &str) {
@@ -256,92 +245,7 @@ impl LuaStateBridge {
         notifications::start(bus);
     }
 
-    pub fn osd_bind(
-        &self,
-        name: &str,
-        signals: Vec<String>,
-        timeout_ms: u64,
-    ) -> std::result::Result<(), String> {
-        let name = name.trim();
-        if name.is_empty() {
-            return Err("osd name cannot be empty".to_string());
-        }
-        let signals: Vec<String> = signals
-            .into_iter()
-            .map(|v| v.trim().to_string())
-            .filter(|v| !v.is_empty())
-            .collect();
-        if signals.is_empty() {
-            return Err("osd signals cannot be empty".to_string());
-        }
-
-        let timeout_ms = timeout_ms.max(1);
-        let mut bindings = self.osd_bindings.borrow_mut();
-        let state = bindings.entry(name.to_string()).or_default();
-        state.signals = signals;
-        state.timeout_ms = timeout_ms;
-        state.active = false;
-        drop(bindings);
-
-        self.start_active_osd_bindings();
-        Ok(())
-    }
-
-    fn start_active_osd_bindings(&self) {
-        let Some(bus) = self.bus.borrow().clone() else {
-            return;
-        };
-        let mut bindings = self.osd_bindings.borrow_mut();
-        for (name, state) in bindings.iter_mut() {
-            if state.active || state.signals.is_empty() {
-                continue;
-            }
-            state.active = true;
-            let osd_name = name.clone();
-            for signal_name in state.signals.clone() {
-                let bridge = self.clone();
-                let osd_name = osd_name.clone();
-                bus.subscribe_key(&signal_name, move |_| {
-                    bridge.trigger_osd(&osd_name);
-                    true
-                });
-            }
-        }
-    }
-
-    fn trigger_osd(&self, name: &str) {
-        let timeout_ms = self
-            .osd_bindings
-            .borrow()
-            .get(name)
-            .map(|v| v.timeout_ms)
-            .unwrap_or(1200)
-            .max(1);
-        self.queue_app_command(AppCommand::SetVisible(name.to_string(), true));
-
-        if let Some(source) = self.osd_hide_timers.borrow_mut().remove(name) {
-            source.remove();
-        }
-
-        let bridge = self.clone();
-        let name = name.to_string();
-        let timer_key = name.clone();
-        let source = glib::timeout_add_local(Duration::from_millis(timeout_ms), move || {
-            bridge.queue_app_command(AppCommand::SetVisible(name.clone(), false));
-            bridge.osd_hide_timers.borrow_mut().remove(&name);
-            glib::ControlFlow::Break
-        });
-        self.osd_hide_timers.borrow_mut().insert(timer_key, source);
-    }
-
     fn shutdown(&self) {
-        for (_, source) in self.osd_hide_timers.borrow_mut().drain() {
-            source.remove();
-        }
-        for state in self.osd_bindings.borrow_mut().values_mut() {
-            state.active = false;
-        }
-
         let mut providers = self.data_providers.borrow_mut();
         for (provider, state) in providers.iter_mut() {
             if let Some(handle) = state.handle.take() {

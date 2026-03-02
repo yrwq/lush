@@ -60,19 +60,6 @@ impl SignalBus {
         self.dispatch_pending();
     }
 
-    pub fn replay_all(&self) {
-        let keys: Vec<String> = self.values.borrow().keys().cloned().collect();
-        for name in keys {
-            self.enqueue_pending(&name);
-        }
-
-        if self.dispatching.get() || self.batch_depth.get() > 0 {
-            return;
-        }
-
-        self.dispatch_pending();
-    }
-
     fn enqueue_pending(&self, name: &str) {
         let mut pending_set = self.pending_set.borrow_mut();
         let inserted = pending_set.insert(name.to_string());

@@ -435,6 +435,7 @@ const BASE_SLIDER: &[&str] = &[
     "valign",
     "class_bind",
     "bind",
+    "input_bind",
     "value",
     "min",
     "max",
@@ -664,6 +665,7 @@ pub struct ProgressProps {
 #[derive(Debug, Clone, Default)]
 pub struct SliderProps {
     pub bind: Option<String>,
+    pub input_bind: Option<String>,
     pub value: Option<f64>,
     pub min: Option<f64>,
     pub max: Option<f64>,

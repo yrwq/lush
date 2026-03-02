@@ -85,13 +85,8 @@ fn parse_window(lua: &Lua, t: Table) -> Result<WindowConfig> {
     let line = widget_line(&t);
     let mut anchors = anchors_from_position("top");
 
-    if let Ok(anchor_value) = t.get::<Value>("anchor")
-        && !matches!(anchor_value, Value::Nil)
-    {
-        let parsed = parse_anchor(anchor_value, line)?;
-        if !parsed.is_empty() {
-            anchors = parsed;
-        }
+    if let Some(parsed) = parse_window_anchors(&t, line)? {
+        anchors = parsed;
     }
 
     if anchors == anchors_from_position("top")
@@ -127,6 +122,22 @@ fn parse_window(lua: &Lua, t: Table) -> Result<WindowConfig> {
         margin_right: t.get("margin_right").unwrap_or(0),
         root,
     })
+}
+
+fn parse_window_anchors(t: &Table, line: Option<i32>) -> Result<Option<Vec<String>>> {
+    for field in ["anchors", "anchor"] {
+        let Ok(value) = t.get::<Value>(field) else {
+            continue;
+        };
+        if matches!(value, Value::Nil) {
+            continue;
+        }
+        let parsed = parse_anchor(value, line)?;
+        if !parsed.is_empty() {
+            return Ok(Some(parsed));
+        }
+    }
+    Ok(None)
 }
 
 fn parse_output_selector(t: &Table) -> Result<Option<String>> {
@@ -427,6 +438,7 @@ fn parse_tray_props(t: &Table) -> TrayProps {
 fn parse_slider_props(t: &Table) -> SliderProps {
     SliderProps {
         bind: t.get("bind").ok(),
+        input_bind: t.get("input_bind").ok(),
         value: t.get("value").ok(),
         min: t.get("min").ok(),
         max: t.get("max").ok(),

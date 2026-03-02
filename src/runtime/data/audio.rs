@@ -27,22 +27,31 @@ pub struct AudioWatcher {
 }
 
 pub fn start_evented(bus: SignalBus) -> Result<AudioWatcher, String> {
-    bus.set("data.audio.volume", "0");
-    bus.set("data.audio.muted", "0");
-    bus.set("data.audio.sink", "");
+    bus.set("data.audio.changed", "0");
 
     let (tx, rx) = async_channel::unbounded::<AudioSnapshot>();
     glib::MainContext::default().spawn_local(async move {
+        let mut initialized = false;
         while let Ok(snapshot) = rx.recv().await {
             let mut latest = snapshot;
             while let Ok(next) = rx.try_recv() {
                 latest = next;
             }
+            let emit_changed = initialized;
             bus.batch(|| {
                 bus.set("data.audio.volume", &latest.volume.to_string());
                 bus.set("data.audio.muted", if latest.muted { "1" } else { "0" });
                 bus.set("data.audio.sink", &latest.sink);
+                if emit_changed {
+                    let next_seq = bus
+                        .get("data.audio.changed")
+                        .and_then(|v| v.parse::<u64>().ok())
+                        .unwrap_or(0)
+                        .saturating_add(1);
+                    bus.set("data.audio.changed", &next_seq.to_string());
+                }
             });
+            initialized = true;
         }
     });
 

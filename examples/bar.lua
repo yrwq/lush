@@ -131,18 +131,6 @@ local bar_window = ui.window({
             clients_use_glyphs = true,
             clients_glyph_fallback = "",
           }),
-          -- ui.dock({
-          --   class = "dock",
-          --   max_items = 8,
-          --   icon_size = 18,
-          --   all_outputs = true,
-          --   on_click = {
-          --     left = "activate",
-          --     middle = "minimize",
-          --     right = "close",
-          --     wheel_down = "minimize",
-          --   },
-          -- }),
           ui.label({
             format = " ",
           }),

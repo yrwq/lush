@@ -1,5 +1,19 @@
 package.preload["lush.osd"] = function()
   local osd = {}
+  
+  local hide_timers = {}
+
+  local function get_scheduler()
+    return require("lush.scheduler")
+  end
+
+  local function get_windows()
+    return require("lush.windows")
+  end
+
+  local function get_signal()
+    return require("lush.signal")
+  end
 
   function osd.bind(opts)
     opts = opts or {}
@@ -15,7 +29,27 @@ package.preload["lush.osd"] = function()
       error("lush.osd.bind requires opts.signals (array)")
     end
     local timeout = opts.timeout or opts.timeout_ms or 1200
-    _lush_osd_bind(name, signals, math.max(1, math.floor(timeout)))
+    local timeout_secs = math.max(1, math.floor(timeout)) / 1000.0
+
+    local signal = get_signal()
+    local windows = get_windows()
+    local scheduler = get_scheduler()
+
+    for _, signal_name in ipairs(signals) do
+      signal.on(signal_name, function()
+        windows.set_visible(name, true)
+        
+        if hide_timers[name] ~= nil then
+          scheduler.cancel(hide_timers[name])
+          hide_timers[name] = nil
+        end
+        
+        hide_timers[name] = scheduler.after(timeout_secs, function()
+          windows.set_visible(name, false)
+          hide_timers[name] = nil
+        end)
+      end, { immediate = false })
+    end
   end
 
   function osd.create(opts)
