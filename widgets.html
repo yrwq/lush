@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "ayu";
             const default_dark_theme = "ayu";
-            window.path_to_searchindex_js = "searchindex-97771019.js";
+            window.path_to_searchindex_js = "searchindex-1424e2ea.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-f777d35e.js"></script>
@@ -438,7 +438,7 @@
 </ul>
 <h3 id="slider"><a class="header" href="#slider"><code>slider</code></a></h3>
 <ul>
-<li>fields: <code>bind</code>, <code>value</code>, <code>min</code>, <code>max</code>, <code>step</code>, <code>scroll_step</code>, <code>orientation</code>, <code>inverted</code>, <code>draw_value</code>, <code>digits</code></li>
+<li>fields: <code>bind</code>, <code>input_bind</code>, <code>value</code>, <code>min</code>, <code>max</code>, <code>step</code>, <code>scroll_step</code>, <code>orientation</code>, <code>inverted</code>, <code>draw_value</code>, <code>digits</code></li>
 <li>defaults:
 <ul>
 <li><code>min = 0</code></li>
@@ -451,9 +451,26 @@
 <li><code>digits = 0</code></li>
 </ul>
 </li>
-<li>reads initial value from <code>bind</code>, and writes back to the same key on user drag.</li>
+<li>reads from <code>bind</code>.</li>
+<li>writes user changes to <code>input_bind</code> when set, otherwise writes back to <code>bind</code>.</li>
 <li>mouse wheel changes slider value by <code>scroll_step</code> (up increases, down decreases).</li>
 <li><code>digits</code> controls numeric precision for emitted string values (<code>0..6</code>).</li>
+</ul>
+<h3 id="entry"><a class="header" href="#entry"><code>entry</code></a></h3>
+<ul>
+<li>fields: <code>text</code>, <code>bind</code>, <code>input_bind</code>, <code>activate_bind</code>, <code>placeholder</code>, <code>max_chars</code>, <code>autofocus</code></li>
+<li>defaults:
+<ul>
+<li><code>text = ""</code></li>
+<li><code>autofocus = false</code></li>
+</ul>
+</li>
+<li>reads displayed text from <code>bind</code> when present, otherwise uses <code>text</code>.</li>
+<li>writes user edits to <code>input_bind</code> when set, otherwise writes back to <code>bind</code>.</li>
+<li>pressing Enter writes the current text to <code>activate_bind</code> and increments <code>activate_bind.__user_seq</code>.</li>
+<li><code>placeholder</code> sets GTK placeholder text.</li>
+<li><code>max_chars</code> limits entered text length.</li>
+<li><code>autofocus</code> grabs focus when the widget is mapped.</li>
 </ul>
 <h3 id="workspaces"><a class="header" href="#workspaces"><code>workspaces</code></a></h3>
 <ul>
