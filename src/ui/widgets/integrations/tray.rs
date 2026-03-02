@@ -1,9 +1,10 @@
 use glib::MainContext;
+use gtk4::gdk::Display;
 use gtk4::prelude::*;
 use gtk4::{
     Box as GBox, Button, CssProvider, EventControllerScroll, EventControllerScrollFlags,
     GestureClick, Image, Orientation, Popover, STYLE_PROVIDER_PRIORITY_USER, Separator, Widget,
-    gdk,
+    TextDirection, gdk,
 };
 use once_cell::sync::Lazy;
 
@@ -154,7 +155,7 @@ fn set_image_from_item(image: &Image, item: &tray::TrayItemSnapshot) {
     };
 
     if !name.is_empty() {
-        image.set_icon_name(Some(name));
+        set_image_from_icon_name(image, name);
         return;
     }
 
@@ -168,12 +169,12 @@ fn set_image_from_item(image: &Image, item: &tray::TrayItemSnapshot) {
             .or(item.attention_icon_pixmap.as_ref())
     };
     let Some(pixmap) = pixmap else {
-        image.set_icon_name(Some("image-missing-symbolic"));
+        set_image_from_icon_name(image, "image-missing-symbolic");
         return;
     };
 
     let Some(bytes) = argb_to_rgba(&pixmap.argb, pixmap.width, pixmap.height) else {
-        image.set_icon_name(Some("image-missing-symbolic"));
+        set_image_from_icon_name(image, "image-missing-symbolic");
         return;
     };
     let rowstride = pixmap.width.saturating_mul(4);
@@ -187,6 +188,42 @@ fn set_image_from_item(image: &Image, item: &tray::TrayItemSnapshot) {
         pixmap.height,
         rowstride,
     );
+    let texture = gtk4::gdk::Texture::for_pixbuf(&pixbuf);
+    image.set_paintable(Some(&texture));
+}
+
+fn set_image_from_icon_name(image: &Image, icon_name: &str) {
+    let size = image.pixel_size().max(1);
+    let Some(display) = Display::default() else {
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
+        return;
+    };
+    let theme = gtk4::IconTheme::for_display(&display);
+    let icon = theme.lookup_icon(
+        icon_name,
+        &[],
+        size,
+        1,
+        TextDirection::Ltr,
+        gtk4::IconLookupFlags::empty(),
+    );
+    let Some(file) = icon.file() else {
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
+        return;
+    };
+    let Some(path) = file.path() else {
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
+        return;
+    };
+    let Ok(pixbuf) = gdk_pixbuf::Pixbuf::from_file_at_scale(
+        path.to_string_lossy().as_ref(),
+        size,
+        size,
+        true,
+    ) else {
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
+        return;
+    };
     let texture = gtk4::gdk::Texture::for_pixbuf(&pixbuf);
     image.set_paintable(Some(&texture));
 }
