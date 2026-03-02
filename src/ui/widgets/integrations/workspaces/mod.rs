@@ -5,8 +5,8 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use glib::MainContext;
-use gtk4::gdk::Display;
 use gtk4::Align;
+use gtk4::gdk::Display;
 use gtk4::prelude::*;
 use gtk4::{Box as GBox, GestureClick, Image, Label, Orientation, TextDirection, Widget};
 
@@ -419,13 +419,11 @@ fn update_client_icons(
                     Some(ClientImageSource::IconName(name)) => {
                         set_client_image_from_icon(&image, &name, cfg.icon_size)
                     }
-                    None => {
-                        set_client_image_from_icon(
-                            &image,
-                            "application-x-executable-symbolic",
-                            cfg.icon_size,
-                        )
-                    }
+                    None => set_client_image_from_icon(
+                        &image,
+                        "application-x-executable-symbolic",
+                        cfg.icon_size,
+                    ),
                 }
                 row.append(&image);
             }

@@ -3,8 +3,8 @@ use gtk4::gdk::Display;
 use gtk4::prelude::*;
 use gtk4::{
     Box as GBox, Button, CssProvider, EventControllerScroll, EventControllerScrollFlags,
-    GestureClick, Image, Orientation, Popover, STYLE_PROVIDER_PRIORITY_USER, Separator, Widget,
-    TextDirection, gdk,
+    GestureClick, Image, Orientation, Popover, STYLE_PROVIDER_PRIORITY_USER, Separator,
+    TextDirection, Widget, gdk,
 };
 use once_cell::sync::Lazy;
 
@@ -215,12 +215,9 @@ fn set_image_from_icon_name(image: &Image, icon_name: &str) {
         image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
         return;
     };
-    let Ok(pixbuf) = gdk_pixbuf::Pixbuf::from_file_at_scale(
-        path.to_string_lossy().as_ref(),
-        size,
-        size,
-        true,
-    ) else {
+    let Ok(pixbuf) =
+        gdk_pixbuf::Pixbuf::from_file_at_scale(path.to_string_lossy().as_ref(), size, size, true)
+    else {
         image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
         return;
     };

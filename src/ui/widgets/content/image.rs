@@ -126,7 +126,9 @@ fn load_local_texture(
         (Some(w), Some(h)) if w > 0 && h > 0 => {
             gdk_pixbuf::Pixbuf::from_file_at_scale(path, w, h, false).ok()?
         }
-        (Some(w), None) if w > 0 => gdk_pixbuf::Pixbuf::from_file_at_scale(path, w, -1, true).ok()?,
+        (Some(w), None) if w > 0 => {
+            gdk_pixbuf::Pixbuf::from_file_at_scale(path, w, -1, true).ok()?
+        }
         (None, Some(h)) if h > 0 => {
             gdk_pixbuf::Pixbuf::from_file_at_scale(path, -1, h, true).ok()?
         }
