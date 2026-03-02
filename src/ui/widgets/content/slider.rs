@@ -2,9 +2,12 @@ use std::cell::Cell;
 use std::rc::Rc;
 
 use gtk4::prelude::*;
-use gtk4::{EventControllerScroll, EventControllerScrollFlags, Orientation, Scale, Widget};
+use gtk4::{
+    EventControllerScroll, EventControllerScrollFlags, GestureClick, Orientation, Scale, Widget,
+};
 
 use crate::config::{WidgetConfig, WidgetProps};
+use crate::runtime::signal_bus::SignalBus;
 use crate::ui::signal_watch::watch_signal;
 use crate::ui::widgets::core::bindings::initial_value_from_bind_or;
 use crate::ui::widgets::core::build_ctx::WidgetBuildCtx;
@@ -36,23 +39,30 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
     slider.set_value(clamp_value(initial_value, min, max));
 
     let syncing_from_bus = Rc::new(Cell::new(false));
+    let dragging = Rc::new(Cell::new(false));
 
     if let Some(bind_name) = props.bind.clone() {
-        let bus_for_change = ctx.bus.clone();
-        let bind_for_change = bind_name.clone();
-        let syncing_for_change = syncing_from_bus.clone();
+        let input_bind = props.input_bind.clone();
+        let bus_for_drag = ctx.bus.clone();
+        let syncing_for_drag = syncing_from_bus.clone();
+        let dragging_for_change = dragging.clone();
         slider.connect_value_changed(move |scale| {
-            if syncing_for_change.get() {
+            if syncing_for_drag.get() || !dragging_for_change.get() {
                 return;
             }
-            let snapped = snap_to_step(scale.value(), min, max, step);
-            if (snapped - scale.value()).abs() > f64::EPSILON {
-                syncing_for_change.set(true);
-                scale.set_value(snapped);
-                syncing_for_change.set(false);
-            }
-            let value = format_numeric(snapped, digits);
-            bus_for_change.set(&bind_for_change, &value);
+            let Some(target_bind) = input_bind.as_deref() else {
+                return;
+            };
+            publish_slider_value(
+                &bus_for_drag,
+                target_bind,
+                scale,
+                min,
+                max,
+                step,
+                digits,
+                &syncing_for_drag,
+            );
         });
 
         let slider = slider.clone();
@@ -67,12 +77,51 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
         });
     }
 
+    let click = GestureClick::new();
+    click.set_button(0);
+    {
+        let dragging_for_press = dragging.clone();
+        click.connect_pressed(move |_, _, _, _| {
+            dragging_for_press.set(true);
+        });
+    }
+    {
+        let dragging_for_release = dragging.clone();
+        let syncing_for_release = syncing_from_bus.clone();
+        let slider_for_release = slider.clone();
+        let bus_for_release = ctx.bus.clone();
+        let bind_for_release = props.input_bind.clone();
+        click.connect_released(move |_, _, _, _| {
+            dragging_for_release.set(false);
+            let Some(bind_name) = bind_for_release.as_deref() else {
+                return;
+            };
+            if syncing_for_release.get() {
+                return;
+            }
+            publish_slider_value(
+                &bus_for_release,
+                bind_name,
+                &slider_for_release,
+                min,
+                max,
+                step,
+                digits,
+                &syncing_for_release,
+            );
+        });
+    }
+    slider.add_controller(click);
+
     let scroll = EventControllerScroll::new(
         EventControllerScrollFlags::VERTICAL
             | EventControllerScrollFlags::HORIZONTAL
             | EventControllerScrollFlags::DISCRETE,
     );
     let weak = slider.downgrade();
+    let bus_for_scroll = ctx.bus.clone();
+    let bind_for_scroll = props.input_bind.clone();
+    let syncing_for_scroll = syncing_from_bus.clone();
     scroll.connect_scroll(move |_, dx, dy| {
         let Some(slider) = weak.upgrade() else {
             return glib::Propagation::Proceed;
@@ -88,7 +137,22 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
         } else {
             -scroll_step
         };
-        slider.set_value(clamp_value(current + delta, min, max));
+        let next = snap_to_step(current + delta, min, max, step);
+        syncing_for_scroll.set(true);
+        slider.set_value(next);
+        syncing_for_scroll.set(false);
+        if let Some(bind_name) = bind_for_scroll.as_deref() {
+            publish_slider_value(
+                &bus_for_scroll,
+                bind_name,
+                &slider,
+                min,
+                max,
+                step,
+                digits,
+                &syncing_for_scroll,
+            );
+        }
         glib::Propagation::Stop
     });
     slider.add_controller(scroll);
@@ -130,4 +194,31 @@ fn snap_to_step(value: f64, min: f64, max: f64, step: f64) -> f64 {
     let clamped = clamp_value(value, min, max);
     let snapped = min + ((clamped - min) / step).round() * step;
     clamp_value(snapped, min, max)
+}
+
+fn publish_slider_value(
+    bus: &SignalBus,
+    bind_name: &str,
+    scale: &Scale,
+    min: f64,
+    max: f64,
+    step: f64,
+    digits: i32,
+    syncing: &Cell<bool>,
+) {
+    let snapped = snap_to_step(scale.value(), min, max, step);
+    if (snapped - scale.value()).abs() > f64::EPSILON {
+        syncing.set(true);
+        scale.set_value(snapped);
+        syncing.set(false);
+    }
+
+    bus.set(bind_name, &format_numeric(snapped, digits));
+    let seq_key = format!("{}.__user_seq", bind_name);
+    let next_seq = bus
+        .get(&seq_key)
+        .and_then(|v| v.parse::<u64>().ok())
+        .unwrap_or(0)
+        .saturating_add(1);
+    bus.set(&seq_key, &next_seq.to_string());
 }

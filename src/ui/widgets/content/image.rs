@@ -1,8 +1,8 @@
 use std::path::Path;
 
-use gio::File;
+use gtk4::gdk::Display;
 use gtk4::prelude::*;
-use gtk4::{ContentFit, IconLookupFlags, IconTheme, Picture, TextDirection, Widget};
+use gtk4::{IconLookupFlags, IconTheme, Image, TextDirection, Widget};
 
 use crate::config::{ImageProps, WidgetConfig, WidgetProps};
 use crate::runtime::signal_bus::SignalBus;
@@ -16,23 +16,25 @@ pub fn build(cfg: &WidgetConfig, ctx: &WidgetBuildCtx<'_>) -> Widget {
         unreachable!("image builder received non-image props");
     };
 
-    let picture = Picture::new();
+    let image = Image::new();
     let width = cfg.base.width;
     let height = cfg.base.height;
+    let size = width.or(height).unwrap_or(48).max(1);
 
-    picture.set_can_shrink(props.can_shrink.unwrap_or(true));
-    picture.set_content_fit(parse_fit(props.fit.as_deref()));
-    set_picture_source(&picture, props.path.as_deref(), width, height);
-    wire_image_binding(&picture, props, ctx.bus, width, height);
-    wire_gesture_click(&picture, &props.on_click, ctx.loaded, ctx.bus.clone());
+    image.set_pixel_size(size);
+    image.set_halign(parse_fit_align(props.fit.as_deref()));
+    image.set_valign(parse_fit_align(props.fit.as_deref()));
+    set_image_source(&image, props.path.as_deref(), width, height);
+    wire_image_binding(&image, props, ctx.bus, width, height);
+    wire_gesture_click(&image, &props.on_click, ctx.loaded, ctx.bus.clone());
 
-    let widget: Widget = picture.upcast();
+    let widget: Widget = image.upcast();
     finalize_widget(&widget, cfg, ctx.bus, props.on_click.has_any());
     widget
 }
 
 fn wire_image_binding(
-    picture: &Picture,
+    image: &Image,
     props: &ImageProps,
     bus: &SignalBus,
     width: Option<i32>,
@@ -43,107 +45,96 @@ fn wire_image_binding(
     };
 
     if let Some(value) = bus.get(&signal_name) {
-        set_picture_source(picture, Some(value.as_str()), width, height);
+        set_image_source(image, Some(value.as_str()), width, height);
     }
 
-    let picture = picture.clone();
+    let image = image.clone();
     watch_signal(bus, signal_name, move |value| {
-        set_picture_source(&picture, Some(value), width, height);
+        set_image_source(&image, Some(value), width, height);
         glib::ControlFlow::Continue
     });
 }
 
-fn set_picture_source(
-    picture: &Picture,
-    source: Option<&str>,
-    width: Option<i32>,
-    height: Option<i32>,
-) {
+fn set_image_source(image: &Image, source: Option<&str>, width: Option<i32>, height: Option<i32>) {
     let Some(raw) = source.map(str::trim).filter(|s| !s.is_empty()) else {
-        picture.set_paintable(Option::<&gtk4::gdk::Texture>::None);
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
         return;
     };
 
-    if let Some(uri_path) = raw.strip_prefix("file://") {
-        let file = File::for_uri(raw);
-        if let Some(path) = file.path() {
-            if let Some(texture) =
-                load_scaled_texture(path.to_string_lossy().as_ref(), width, height)
-            {
-                picture.set_paintable(Some(&texture));
-                return;
-            }
-        } else if let Some(texture) = load_scaled_texture(uri_path, width, height) {
-            picture.set_paintable(Some(&texture));
+    if let Some(path) = normalize_file_like_path(raw) {
+        if let Some(texture) = load_local_texture(&path, width, height) {
+            image.set_paintable(Some(&texture));
             return;
         }
-        picture.set_file(Some(&file));
+        image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
         return;
     }
 
-    if raw.contains("://") {
-        picture.set_file(Some(&File::for_uri(raw)));
+    if let Some(texture) = load_icon_texture(raw, width, height) {
+        image.set_paintable(Some(&texture));
         return;
     }
 
-    if let Some(texture) = load_scaled_texture(raw, width, height) {
-        picture.set_paintable(Some(&texture));
-        return;
-    }
-
-    if Path::new(raw).is_file() {
-        picture.set_filename(Some(raw));
-        return;
-    }
-
-    if let Some(icon) = lookup_icon_paintable(raw, width, height) {
-        picture.set_paintable(Some(&icon));
-        return;
-    }
-
-    picture.set_paintable(Option::<&gtk4::gdk::Texture>::None);
+    image.set_paintable(Option::<&gtk4::gdk::Paintable>::None);
 }
 
-fn lookup_icon_paintable(
+fn normalize_file_like_path(raw: &str) -> Option<String> {
+    if let Some(path) = raw.strip_prefix("file://") {
+        if Path::new(path).exists() {
+            return Some(path.to_string());
+        }
+        if let Ok((decoded, _)) = glib::filename_from_uri(raw) {
+            return Some(decoded.to_string_lossy().into_owned());
+        }
+        return None;
+    }
+
+    if Path::new(raw).exists() {
+        return Some(raw.to_string());
+    }
+
+    None
+}
+
+fn load_icon_texture(
     icon_name: &str,
     width: Option<i32>,
     height: Option<i32>,
-) -> Option<gtk4::IconPaintable> {
-    let display = gtk4::gdk::Display::default()?;
+) -> Option<gtk4::gdk::Texture> {
+    let display = Display::default()?;
     let theme = IconTheme::for_display(&display);
     let size = width.or(height).unwrap_or(48).max(1);
-    Some(theme.lookup_icon(
+    let icon = theme.lookup_icon(
         icon_name,
         &[],
         size,
         1,
         TextDirection::Ltr,
         IconLookupFlags::empty(),
-    ))
+    );
+    let file = icon.file()?;
+    let path = file.path()?;
+    load_local_texture(path.to_string_lossy().as_ref(), width, height)
 }
 
-fn load_scaled_texture(
+fn load_local_texture(
     path: &str,
     width: Option<i32>,
     height: Option<i32>,
 ) -> Option<gtk4::gdk::Texture> {
-    let (w, h) = match (width, height) {
-        (Some(w), Some(h)) if w > 0 && h > 0 => (w, h),
-        (Some(w), None) if w > 0 => (w, -1),
-        (None, Some(h)) if h > 0 => (-1, h),
-        _ => return None,
+    let pixbuf = match (width, height) {
+        (Some(w), Some(h)) if w > 0 && h > 0 => {
+            gdk_pixbuf::Pixbuf::from_file_at_scale(path, w, h, false).ok()?
+        }
+        (Some(w), None) if w > 0 => gdk_pixbuf::Pixbuf::from_file_at_scale(path, w, -1, true).ok()?,
+        (None, Some(h)) if h > 0 => {
+            gdk_pixbuf::Pixbuf::from_file_at_scale(path, -1, h, true).ok()?
+        }
+        _ => gdk_pixbuf::Pixbuf::from_file(path).ok()?,
     };
-
-    let preserve_aspect = width.is_none() || height.is_none();
-    let pixbuf = gdk_pixbuf::Pixbuf::from_file_at_scale(path, w, h, preserve_aspect).ok()?;
     Some(gtk4::gdk::Texture::for_pixbuf(&pixbuf))
 }
 
-fn parse_fit(value: Option<&str>) -> ContentFit {
-    match value.unwrap_or("contain") {
-        "cover" => ContentFit::Cover,
-        "fill" => ContentFit::Fill,
-        "scale-down" => ContentFit::ScaleDown,
-        _ => ContentFit::Contain,
-    }
+fn parse_fit_align(_value: Option<&str>) -> gtk4::Align {
+    gtk4::Align::Center
 }
