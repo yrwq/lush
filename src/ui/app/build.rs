@@ -6,7 +6,7 @@ use gtk4::prelude::*;
 use gtk4::{Application, ApplicationWindow};
 use gtk4_layer_shell::{Edge, Layer, LayerShell, is_supported};
 
-use crate::config::{AppConfig, LoadedConfig, WidgetConfig, WidgetKind, WindowConfig};
+use crate::config::{AppConfig, LoadedConfig, WidgetConfig, WindowConfig};
 use crate::runtime::notifications;
 use crate::runtime::signal_bus::SignalBus;
 use crate::ui::monitor;
@@ -27,17 +27,20 @@ pub fn build_windows(app: &Application, cfg: &LoadedConfig) -> UiSession {
     let usage = detect_integration_usage(cfg);
     log_integration_summary(&usage);
 
+    if usage.needs_audio_provider
+        && let Err(err) = cfg.runtime.data_use("audio", None, None, None, None)
+    {
+        log::warn!("failed to auto-start audio provider: {}", err);
+    }
+
     let bus = SignalBus::default();
     control::wire_lua_signal_dispatch(&bus, cfg.runtime.clone());
-    cfg.runtime.attach_signal_bus(bus.clone());
-    if usage.needs_notifications_runtime {
-        notifications::start(bus.clone());
-    }
     let windows: WindowRegistry = Rc::new(RefCell::new(HashMap::new()));
     control::wire_app_commands(cfg.runtime.clone(), &bus, &windows);
 
     for window_cfg in &cfg.app.windows {
         let window = build_window(app, window_cfg, &bus, &windows, cfg);
+        control::wire_window_signal_resync(&window, &bus);
         control::register_window_if_named(&window, window_cfg, &windows);
         control::apply_initial_visibility(&window, window_cfg);
         control::publish_window_visibility(
@@ -46,6 +49,11 @@ pub fn build_windows(app: &Application, cfg: &LoadedConfig) -> UiSession {
             window_cfg.name.as_deref(),
             window.is_visible(),
         );
+    }
+
+    cfg.runtime.attach_signal_bus(bus.clone());
+    if usage.needs_notifications_runtime {
+        notifications::start(bus.clone());
     }
 
     control::present_named_windows(&cfg.app.windows, &windows, cfg.runtime.as_ref(), &bus);
@@ -98,16 +106,12 @@ pub fn reconfigure_windows(app: &Application, session: &mut UiSession, app_cfg: 
     for (name, window_cfg) in desired_named {
         if let Some(window) = session.windows.borrow().get(&name).cloned() {
             apply_window_config(&window, window_cfg);
-            if window_cfg.visible {
-                window.present();
-            } else {
-                window.set_visible(false);
-            }
-            control::publish_window_visibility(
+            control::set_named_window_visible(
                 session.runtime.as_ref(),
                 &session.bus,
-                Some(&name),
-                window.is_visible(),
+                &session.windows,
+                &name,
+                window_cfg.visible,
             );
             continue;
         }
@@ -119,27 +123,30 @@ pub fn reconfigure_windows(app: &Application, session: &mut UiSession, app_cfg: 
             &session.windows,
             &loaded_for_new,
         );
+        control::wire_window_signal_resync(&window, &session.bus);
         control::register_window_if_named(&window, window_cfg, &session.windows);
-        if window_cfg.visible {
-            window.present();
-        } else {
-            window.set_visible(false);
-        }
-        control::publish_window_visibility(
+        control::set_named_window_visible(
             session.runtime.as_ref(),
             &session.bus,
-            window_cfg.name.as_deref(),
-            window.is_visible(),
+            &session.windows,
+            &name,
+            window_cfg.visible,
         );
     }
 }
 
 #[derive(Default)]
 struct IntegrationUsage {
+    needs_audio_provider: bool,
     needs_notifications_runtime: bool,
 }
 
 fn log_integration_summary(usage: &IntegrationUsage) {
+    let audio_provider = if usage.needs_audio_provider {
+        "enabled"
+    } else {
+        "disabled"
+    };
     let notifications_runtime = if usage.needs_notifications_runtime {
         "enabled"
     } else {
@@ -147,8 +154,9 @@ fn log_integration_summary(usage: &IntegrationUsage) {
     };
 
     log::info!(
-        "integrations: notifications-runtime={}",
-        notifications_runtime
+        "integrations: audio-provider={}, notifications-runtime={}",
+        audio_provider,
+        notifications_runtime,
     );
 }
 
@@ -161,18 +169,64 @@ fn detect_integration_usage(cfg: &LoadedConfig) -> IntegrationUsage {
 }
 
 fn collect_widget_usage(cfg: &WidgetConfig, usage: &mut IntegrationUsage) {
-    if let (WidgetKind::List, crate::config::WidgetProps::List(props)) = (cfg.kind, &cfg.props)
-        && props
-            .bind
-            .as_deref()
-            .map(str::trim)
-            .is_some_and(|v| v.starts_with("notification."))
-    {
-        usage.needs_notifications_runtime = true;
+    collect_signal_usage(cfg.base.visible_bind.as_deref(), usage);
+    collect_signal_usage(cfg.base.class_bind.as_deref(), usage);
+
+    match &cfg.props {
+        crate::config::WidgetProps::Revealer(props) => {
+            collect_signal_usage(props.reveal_bind.as_deref(), usage);
+        }
+        crate::config::WidgetProps::List(props) => {
+            collect_signal_usage(props.bind.as_deref(), usage);
+        }
+        crate::config::WidgetProps::Label(props) => {
+            collect_signal_usage(props.bind.as_deref(), usage);
+            for bind in props.binds.values() {
+                collect_signal_usage(Some(bind.as_str()), usage);
+            }
+        }
+        crate::config::WidgetProps::Button(props) => {
+            collect_signal_usage(props.bind.as_deref(), usage);
+        }
+        crate::config::WidgetProps::Clock(props) => {
+            collect_signal_usage(props.bind.as_deref(), usage);
+        }
+        crate::config::WidgetProps::Image(props) => {
+            collect_signal_usage(props.bind.as_deref(), usage);
+        }
+        crate::config::WidgetProps::Progress(props) => {
+            collect_signal_usage(props.bind.as_deref(), usage);
+        }
+        crate::config::WidgetProps::Slider(props) => {
+            collect_signal_usage(props.bind.as_deref(), usage);
+        }
+        crate::config::WidgetProps::HBox(_)
+        | crate::config::WidgetProps::VBox(_)
+        | crate::config::WidgetProps::CenterBox(_)
+        | crate::config::WidgetProps::Scroll(_)
+        | crate::config::WidgetProps::Overlay(_)
+        | crate::config::WidgetProps::Popover(_)
+        | crate::config::WidgetProps::Workspaces(_)
+        | crate::config::WidgetProps::Dock(_)
+        | crate::config::WidgetProps::Tray(_) => {}
     }
 
     for child in &cfg.base.children {
         collect_widget_usage(child, usage);
+    }
+}
+
+fn collect_signal_usage(signal_name: Option<&str>, usage: &mut IntegrationUsage) {
+    let Some(signal_name) = signal_name.map(str::trim).filter(|v| !v.is_empty()) else {
+        return;
+    };
+
+    if signal_name.starts_with("data.audio.") {
+        usage.needs_audio_provider = true;
+    }
+
+    if signal_name.starts_with("notification.") {
+        usage.needs_notifications_runtime = true;
     }
 }
 

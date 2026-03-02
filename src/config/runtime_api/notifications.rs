@@ -4,6 +4,15 @@ use crate::runtime::lua_runtime::LuaStateBridge;
 use crate::runtime::notifications;
 
 pub fn install(lua: &Lua, bridge: LuaStateBridge) -> Result<()> {
+    let enable_bridge = bridge.clone();
+    lua.globals().set(
+        "_lush_notification_enable",
+        lua.create_function(move |_, (): ()| {
+            enable_bridge.request_notifications_runtime();
+            Ok(())
+        })?,
+    )?;
+
     let send_bridge = bridge.clone();
     lua.globals().set(
         "_lush_notification_send",

@@ -2,12 +2,14 @@ use mlua::{Function, Lua, Result, Table};
 use std::cell::Cell;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::collections::VecDeque;
 use std::rc::Rc;
 use std::time::Duration;
 
 use super::data::{
     self, CpuTotalsState, NetworkTotalsState, Provider, ProviderStartContext, ProviderStartOptions,
 };
+use super::notifications;
 use super::signal_bus::SignalBus;
 
 const CALLBACKS_GLOBAL: &str = "__callbacks";
@@ -47,10 +49,13 @@ pub struct LuaStateBridge {
     bootstrap: Rc<RefCell<HashMap<String, String>>>,
     app_command_listeners: Rc<RefCell<HashMap<u64, AppCommandListener>>>,
     next_command_listener_id: Rc<Cell<u64>>,
+    pending_app_commands: Rc<RefCell<VecDeque<AppCommand>>>,
+    dispatching_app_commands: Rc<Cell<bool>>,
     window_visibility: Rc<RefCell<HashMap<String, bool>>>,
     osd_bindings: Rc<RefCell<HashMap<String, OsdBindingState>>>,
     osd_hide_timers: Rc<RefCell<HashMap<String, glib::SourceId>>>,
     data_providers: Rc<RefCell<HashMap<Provider, DataProviderState>>>,
+    notifications_requested: Rc<Cell<bool>>,
     cpu_prev_totals: CpuTotalsState,
     network_prev_totals: NetworkTotalsState,
 }
@@ -62,6 +67,7 @@ impl LuaStateBridge {
         }
         *self.bus.borrow_mut() = Some(bus);
         self.start_active_data_providers();
+        self.start_requested_notifications_runtime();
         self.start_active_osd_bindings();
     }
 
@@ -235,6 +241,21 @@ impl LuaStateBridge {
         }
     }
 
+    pub fn request_notifications_runtime(&self) {
+        self.notifications_requested.set(true);
+        self.start_requested_notifications_runtime();
+    }
+
+    fn start_requested_notifications_runtime(&self) {
+        if !self.notifications_requested.get() {
+            return;
+        }
+        let Some(bus) = self.bus.borrow().clone() else {
+            return;
+        };
+        notifications::start(bus);
+    }
+
     pub fn osd_bind(
         &self,
         name: &str,
@@ -341,24 +362,40 @@ impl LuaStateBridge {
     }
 
     pub fn queue_app_command(&self, cmd: AppCommand) {
-        let listeners: Vec<(u64, AppCommandListener)> = self
-            .app_command_listeners
-            .borrow()
-            .iter()
-            .map(|(id, cb)| (*id, cb.clone()))
-            .collect();
-        let mut stale = Vec::new();
-        for (id, callback) in listeners {
-            if !(callback.borrow_mut())(&cmd) {
-                stale.push(id);
+        self.pending_app_commands.borrow_mut().push_back(cmd);
+        if self.dispatching_app_commands.get() {
+            return;
+        }
+
+        self.dispatching_app_commands.set(true);
+        loop {
+            let cmd = {
+                let mut pending = self.pending_app_commands.borrow_mut();
+                pending.pop_front()
+            };
+            let Some(cmd) = cmd else {
+                break;
+            };
+            let listeners: Vec<(u64, AppCommandListener)> = self
+                .app_command_listeners
+                .borrow()
+                .iter()
+                .map(|(id, cb)| (*id, cb.clone()))
+                .collect();
+            let mut stale = Vec::new();
+            for (id, callback) in listeners {
+                if !(callback.borrow_mut())(&cmd) {
+                    stale.push(id);
+                }
+            }
+            if !stale.is_empty() {
+                let mut refs = self.app_command_listeners.borrow_mut();
+                for id in stale {
+                    refs.remove(&id);
+                }
             }
         }
-        if !stale.is_empty() {
-            let mut refs = self.app_command_listeners.borrow_mut();
-            for id in stale {
-                refs.remove(&id);
-            }
-        }
+        self.dispatching_app_commands.set(false);
     }
 
     pub fn subscribe_app_commands<F>(&self, callback: F) -> u64
@@ -421,8 +458,23 @@ impl LuaRuntime {
         self.bridge.set_window_visible(name, visible);
     }
 
+    pub fn is_window_visible(&self, name: &str) -> bool {
+        self.bridge.is_window_visible(name)
+    }
+
     pub fn window_names(&self) -> Vec<String> {
         self.bridge.window_names()
+    }
+
+    pub fn data_use(
+        &self,
+        name: &str,
+        interval: Option<u32>,
+        iface: Option<String>,
+        path: Option<String>,
+        output: Option<String>,
+    ) -> std::result::Result<(), String> {
+        self.bridge.data_use(name, interval, iface, path, output)
     }
 
     pub fn invoke_click_callback(&self, id: u64) -> Result<()> {

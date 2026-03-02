@@ -7,7 +7,7 @@ use gtk4::prelude::*;
 
 use crate::config::{LabelProps, WidgetConfig};
 use crate::runtime::signal_bus::SignalBus;
-use crate::ui::signal_watch::{watch_signal, window_is_visible};
+use crate::ui::signal_watch::watch_signal;
 
 pub struct LabelWatchCtx {
     pub bus: SignalBus,
@@ -34,7 +34,7 @@ pub fn install_label_watchers<W, F>(
     } = watch_ctx;
 
     if let Some(bind_name) = props.bind.clone() {
-        let weak = widget.downgrade();
+        let widget = widget.clone();
         let cfg_for_watch = cfg.clone();
         let current_value_for_watch = current_value.clone();
         let current_state_for_watch = current_state.clone();
@@ -42,26 +42,19 @@ pub fn install_label_watchers<W, F>(
         let apply_for_watch = apply.clone();
         watch_signal(&bus, bind_name, move |value| {
             *current_value_for_watch.borrow_mut() = value.to_string();
-            if let Some(widget) = weak.upgrade() {
-                if !window_is_visible(&widget) {
-                    return glib::ControlFlow::Continue;
-                }
-                apply_for_watch(
-                    &widget,
-                    &cfg_for_watch,
-                    &current_value_for_watch.borrow(),
-                    &current_state_for_watch.borrow(),
-                    &named_tokens_for_watch.borrow(),
-                );
-                glib::ControlFlow::Continue
-            } else {
-                glib::ControlFlow::Break
-            }
+            apply_for_watch(
+                &widget,
+                &cfg_for_watch,
+                &current_value_for_watch.borrow(),
+                &current_state_for_watch.borrow(),
+                &named_tokens_for_watch.borrow(),
+            );
+            glib::ControlFlow::Continue
         });
     }
 
     if let Some(class_bind) = cfg.base.class_bind.clone() {
-        let weak = widget.downgrade();
+        let widget = widget.clone();
         let cfg_for_watch = cfg.clone();
         let current_value_for_watch = current_value.clone();
         let current_state_for_watch = current_state.clone();
@@ -69,26 +62,19 @@ pub fn install_label_watchers<W, F>(
         let apply_for_watch = apply.clone();
         watch_signal(&bus, class_bind, move |state| {
             *current_state_for_watch.borrow_mut() = state.to_string();
-            if let Some(widget) = weak.upgrade() {
-                if !window_is_visible(&widget) {
-                    return glib::ControlFlow::Continue;
-                }
-                apply_for_watch(
-                    &widget,
-                    &cfg_for_watch,
-                    &current_value_for_watch.borrow(),
-                    &current_state_for_watch.borrow(),
-                    &named_tokens_for_watch.borrow(),
-                );
-                glib::ControlFlow::Continue
-            } else {
-                glib::ControlFlow::Break
-            }
+            apply_for_watch(
+                &widget,
+                &cfg_for_watch,
+                &current_value_for_watch.borrow(),
+                &current_state_for_watch.borrow(),
+                &named_tokens_for_watch.borrow(),
+            );
+            glib::ControlFlow::Continue
         });
     }
 
     for (token, signal) in props.binds.clone() {
-        let weak = widget.downgrade();
+        let widget = widget.clone();
         let cfg_for_watch = cfg.clone();
         let current_value_for_watch = current_value.clone();
         let current_state_for_watch = current_state.clone();
@@ -98,21 +84,14 @@ pub fn install_label_watchers<W, F>(
             named_tokens_for_watch
                 .borrow_mut()
                 .insert(token.clone(), value.to_string());
-            if let Some(widget) = weak.upgrade() {
-                if !window_is_visible(&widget) {
-                    return glib::ControlFlow::Continue;
-                }
-                apply_for_watch(
-                    &widget,
-                    &cfg_for_watch,
-                    &current_value_for_watch.borrow(),
-                    &current_state_for_watch.borrow(),
-                    &named_tokens_for_watch.borrow(),
-                );
-                glib::ControlFlow::Continue
-            } else {
-                glib::ControlFlow::Break
-            }
+            apply_for_watch(
+                &widget,
+                &cfg_for_watch,
+                &current_value_for_watch.borrow(),
+                &current_state_for_watch.borrow(),
+                &named_tokens_for_watch.borrow(),
+            );
+            glib::ControlFlow::Continue
         });
     }
 }

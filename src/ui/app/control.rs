@@ -57,6 +57,20 @@ pub(super) fn register_window_if_named(
     }
 }
 
+pub(super) fn wire_window_signal_resync(window: &ApplicationWindow, bus: &SignalBus) {
+    let bus_for_map = bus.clone();
+    window.connect_map(move |_| {
+        bus_for_map.replay_all();
+    });
+
+    let bus_for_visible = bus.clone();
+    window.connect_visible_notify(move |window| {
+        if window.is_visible() {
+            bus_for_visible.replay_all();
+        }
+    });
+}
+
 pub(super) fn apply_initial_visibility(window: &ApplicationWindow, cfg: &WindowConfig) {
     if cfg.name.is_some() {
         return;
@@ -122,12 +136,12 @@ fn toggle_named_window(
     name: &str,
 ) {
     if let Some(window) = windows.borrow().get(name) {
-        let visible = !window.is_visible();
+        let visible = !runtime.is_window_visible(name);
         set_window_visible(runtime, bus, window, name, visible);
     }
 }
 
-fn set_named_window_visible(
+pub(super) fn set_named_window_visible(
     runtime: &LuaRuntime,
     bus: &SignalBus,
     windows: &WindowRegistry,
