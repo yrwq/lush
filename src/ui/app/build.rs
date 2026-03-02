@@ -40,7 +40,6 @@ pub fn build_windows(app: &Application, cfg: &LoadedConfig) -> UiSession {
 
     for window_cfg in &cfg.app.windows {
         let window = build_window(app, window_cfg, &bus, &windows, cfg);
-        control::wire_window_signal_resync(&window, &bus);
         control::register_window_if_named(&window, window_cfg, &windows);
         control::apply_initial_visibility(&window, window_cfg);
         control::publish_window_visibility(
@@ -123,7 +122,6 @@ pub fn reconfigure_windows(app: &Application, session: &mut UiSession, app_cfg: 
             &session.windows,
             &loaded_for_new,
         );
-        control::wire_window_signal_resync(&window, &session.bus);
         control::register_window_if_named(&window, window_cfg, &session.windows);
         control::set_named_window_visible(
             session.runtime.as_ref(),

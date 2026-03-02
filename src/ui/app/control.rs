@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
-use gtk4::ApplicationWindow;
 use gtk4::prelude::*;
+use gtk4::ApplicationWindow;
 
 use crate::config::WindowConfig;
 use crate::runtime::lua_runtime::{AppCommand, LuaRuntime};
@@ -16,7 +16,7 @@ pub(super) fn wire_app_commands(
 ) {
     let windows = windows.clone();
     let bus = bus.clone();
-    let runtime_weak = Rc::downgrade(&runtime);
+    let runtime_weak: std::rc::Weak<LuaRuntime> = Rc::downgrade(&runtime);
     runtime.subscribe_app_commands(move |cmd| {
         let Some(runtime) = runtime_weak.upgrade() else {
             return false;
@@ -34,7 +34,7 @@ pub(super) fn wire_app_commands(
 }
 
 pub(super) fn wire_lua_signal_dispatch(bus: &SignalBus, runtime: Rc<LuaRuntime>) {
-    let runtime_weak = Rc::downgrade(&runtime);
+    let runtime_weak: std::rc::Weak<LuaRuntime> = Rc::downgrade(&runtime);
     bus.subscribe(move |event| {
         let Some(runtime) = runtime_weak.upgrade() else {
             return false;
@@ -55,20 +55,6 @@ pub(super) fn register_window_if_named(
         windows.borrow_mut().insert(name.clone(), window.clone());
         log::info!("registered window '{}'", name);
     }
-}
-
-pub(super) fn wire_window_signal_resync(window: &ApplicationWindow, bus: &SignalBus) {
-    let bus_for_map = bus.clone();
-    window.connect_map(move |_| {
-        bus_for_map.replay_all();
-    });
-
-    let bus_for_visible = bus.clone();
-    window.connect_visible_notify(move |window| {
-        if window.is_visible() {
-            bus_for_visible.replay_all();
-        }
-    });
 }
 
 pub(super) fn apply_initial_visibility(window: &ApplicationWindow, cfg: &WindowConfig) {
