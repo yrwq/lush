@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use gtk4::prelude::*;
 use gtk4::{Application, ApplicationWindow};
-use gtk4_layer_shell::{Edge, Layer, LayerShell, is_supported};
+use gtk4_layer_shell::{Edge, KeyboardMode, Layer, LayerShell, is_supported};
 
 use crate::config::{AppConfig, LoadedConfig, WidgetConfig, WindowConfig};
 use crate::runtime::notifications;
@@ -198,6 +198,11 @@ fn collect_widget_usage(cfg: &WidgetConfig, usage: &mut IntegrationUsage) {
         crate::config::WidgetProps::Slider(props) => {
             collect_signal_usage(props.bind.as_deref(), usage);
         }
+        crate::config::WidgetProps::Entry(props) => {
+            collect_signal_usage(props.bind.as_deref(), usage);
+            collect_signal_usage(props.input_bind.as_deref(), usage);
+            collect_signal_usage(props.activate_bind.as_deref(), usage);
+        }
         crate::config::WidgetProps::HBox(_)
         | crate::config::WidgetProps::VBox(_)
         | crate::config::WidgetProps::CenterBox(_)
@@ -293,6 +298,7 @@ fn configure_layer_shell_window(window: &ApplicationWindow, window_cfg: &WindowC
 
     window.init_layer_shell();
     window.set_layer(parse_layer(&window_cfg.layer));
+    window.set_keyboard_mode(keyboard_mode_for(window_cfg));
     monitor::apply_output_target(window, window_cfg.output.as_deref());
 
     apply_anchors(window, &window_cfg.anchors);
@@ -304,6 +310,21 @@ fn configure_layer_shell_window(window: &ApplicationWindow, window_cfg: &WindowC
     }
 
     apply_margins(window, window_cfg);
+}
+
+fn keyboard_mode_for(window_cfg: &WindowConfig) -> KeyboardMode {
+    if widget_tree_needs_keyboard(&window_cfg.root) {
+        return KeyboardMode::Exclusive;
+    }
+    KeyboardMode::None
+}
+
+fn widget_tree_needs_keyboard(cfg: &WidgetConfig) -> bool {
+    if matches!(cfg.props, crate::config::WidgetProps::Entry(_)) {
+        return true;
+    }
+
+    cfg.base.children.iter().any(widget_tree_needs_keyboard)
 }
 
 fn configure_fallback_window(window: &ApplicationWindow, window_cfg: &WindowConfig) {

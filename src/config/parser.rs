@@ -2,9 +2,9 @@ use mlua::{Function, Lua, Result, Table, Value};
 
 use super::types::{
     BoxProps, ButtonProps, ClickAction, ClickBindings, ClockProps, DockClickAction, DockProps,
-    IconifyRule, ImageProps, LabelProps, ListProps, OverlayProps, PopoverProps, ProgressProps,
-    RevealerProps, RichFormatRule, RichTextStyle, ScrollProps, SliderProps, TrayProps, WidgetBase,
-    WidgetConfig, WidgetKind, WidgetProps, WindowConfig, WorkspacesProps,
+    EntryProps, IconifyRule, ImageProps, LabelProps, ListProps, OverlayProps, PopoverProps,
+    ProgressProps, RevealerProps, RichFormatRule, RichTextStyle, ScrollProps, SliderProps,
+    TrayProps, WidgetBase, WidgetConfig, WidgetKind, WidgetProps, WindowConfig, WorkspacesProps,
 };
 use super::validator::validate_widget_tree;
 
@@ -20,7 +20,7 @@ const POSITION_BOTTOM_ANCHORS: [&str; 3] = ["bottom", "left", "right"];
 const POSITION_LEFT_ANCHORS: [&str; 3] = ["left", "top", "bottom"];
 const POSITION_RIGHT_ANCHORS: [&str; 3] = ["right", "top", "bottom"];
 
-pub const WIDGET_KINDS: [&str; 18] = [
+pub const WIDGET_KINDS: [&str; 19] = [
     "hbox",
     "vbox",
     "centerbox",
@@ -38,6 +38,7 @@ pub const WIDGET_KINDS: [&str; 18] = [
     "image",
     "progress",
     "slider",
+    "entry",
     WIDGET_WINDOW,
 ];
 
@@ -271,6 +272,7 @@ fn parse_widget_props(lua: &Lua, kind: WidgetKind, t: &Table) -> Result<WidgetPr
         WidgetKind::Image => Ok(WidgetProps::Image(parse_image_props(lua, t)?)),
         WidgetKind::Progress => Ok(WidgetProps::Progress(parse_progress_props(t))),
         WidgetKind::Slider => Ok(WidgetProps::Slider(parse_slider_props(t))),
+        WidgetKind::Entry => Ok(WidgetProps::Entry(parse_entry_props(t))),
     }
 }
 
@@ -448,6 +450,18 @@ fn parse_slider_props(t: &Table) -> SliderProps {
         inverted: t.get::<Option<bool>>("inverted").unwrap_or(None),
         draw_value: t.get::<Option<bool>>("draw_value").unwrap_or(None),
         digits: t.get("digits").ok(),
+    }
+}
+
+fn parse_entry_props(t: &Table) -> EntryProps {
+    EntryProps {
+        text: t.get("text").ok(),
+        bind: t.get("bind").ok(),
+        input_bind: t.get("input_bind").ok(),
+        activate_bind: t.get("activate_bind").ok(),
+        placeholder: t.get("placeholder").ok(),
+        max_chars: t.get("max_chars").ok(),
+        autofocus: t.get::<Option<bool>>("autofocus").unwrap_or(None),
     }
 }
 

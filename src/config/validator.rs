@@ -110,6 +110,17 @@ fn validate_widget(cfg: &WidgetConfig) {
                 );
             }
         }
+        (WidgetKind::Entry, WidgetProps::Entry(props)) => {
+            if let Some(max_chars) = props.max_chars
+                && max_chars <= 0
+            {
+                log::warn!(
+                    "{}entry.max_chars should be > 0; got {}",
+                    format_line_prefix(cfg.line),
+                    max_chars
+                );
+            }
+        }
         (WidgetKind::List, WidgetProps::List(props)) => {
             if cfg.base.children.is_empty() {
                 log::warn!(

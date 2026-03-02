@@ -165,6 +165,29 @@ impl WidgetProps {
                     fields.push("angle");
                 }
             }
+            Self::Entry(props) => {
+                if props.text.is_some() {
+                    fields.push("text");
+                }
+                if props.bind.is_some() {
+                    fields.push("bind");
+                }
+                if props.input_bind.is_some() {
+                    fields.push("input_bind");
+                }
+                if props.activate_bind.is_some() {
+                    fields.push("activate_bind");
+                }
+                if props.placeholder.is_some() {
+                    fields.push("placeholder");
+                }
+                if props.max_chars.is_some() {
+                    fields.push("max_chars");
+                }
+                if props.autofocus.is_some() {
+                    fields.push("autofocus");
+                }
+            }
             Self::Workspaces(props) => {
                 if props.count.is_some() {
                     fields.push("count");

@@ -42,6 +42,7 @@ pub enum WidgetKind {
     Image,
     Progress,
     Slider,
+    Entry,
 }
 
 impl WidgetKind {
@@ -64,6 +65,7 @@ impl WidgetKind {
             "image" => Some(Self::Image),
             "progress" => Some(Self::Progress),
             "slider" => Some(Self::Slider),
+            "entry" => Some(Self::Entry),
             _ => None,
         }
     }
@@ -87,6 +89,7 @@ impl WidgetKind {
             Self::Image => "image",
             Self::Progress => "progress",
             Self::Slider => "slider",
+            Self::Entry => "entry",
         }
     }
 
@@ -112,6 +115,7 @@ impl WidgetKind {
             Self::Image => BASE_IMAGE,
             Self::Progress => BASE_PROGRESS,
             Self::Slider => BASE_SLIDER,
+            Self::Entry => BASE_ENTRY,
         }
     }
 }
@@ -447,6 +451,27 @@ const BASE_SLIDER: &[&str] = &[
     "digits",
 ];
 
+const BASE_ENTRY: &[&str] = &[
+    "class",
+    "classes",
+    "visible",
+    "visible_bind",
+    "width",
+    "height",
+    "hexpand",
+    "vexpand",
+    "halign",
+    "valign",
+    "class_bind",
+    "text",
+    "bind",
+    "input_bind",
+    "activate_bind",
+    "placeholder",
+    "max_chars",
+    "autofocus",
+];
+
 #[derive(Debug, Clone)]
 pub enum ClickAction {
     Shell(String),
@@ -678,6 +703,17 @@ pub struct SliderProps {
 }
 
 #[derive(Debug, Clone, Default)]
+pub struct EntryProps {
+    pub text: Option<String>,
+    pub bind: Option<String>,
+    pub input_bind: Option<String>,
+    pub activate_bind: Option<String>,
+    pub placeholder: Option<String>,
+    pub max_chars: Option<i32>,
+    pub autofocus: Option<bool>,
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct BoxProps {
     pub spacing: Option<i32>,
 }
@@ -721,6 +757,7 @@ pub enum WidgetProps {
     Image(ImageProps),
     Progress(ProgressProps),
     Slider(SliderProps),
+    Entry(EntryProps),
 }
 
 #[derive(Debug, Clone)]

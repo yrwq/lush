@@ -1,0 +1,90 @@
+:root {
+    --bg: #1d2021;
+    --bg-surface: #282828;
+    --bg-soft: #3c3836;
+    --accent: #dca561;
+    --fg: #d4be98;
+    --fg-muted: #a89984;
+    --danger: #fb4934;
+}
+
+* {
+    font-family: "Ioskeley Mono";
+    font-size: 14px;
+}
+
+.launcher-root {
+    background: rgba(29, 32, 33, 0.74);
+    padding: 36px;
+}
+
+.launcher-panel {
+    background: var(--bg);
+    border: 1px solid var(--bg-soft);
+    padding: 10px;
+}
+
+.launcher-search {
+    background: var(--bg-surface);
+    color: var(--fg);
+    border: 1px solid var(--bg-soft);
+    border-radius: 0;
+    padding: 10px 12px;
+    font-size: 22px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.launcher-search:focus-within {
+    border-color: var(--accent);
+    box-shadow: none;
+}
+
+.launcher-empty {
+    color: var(--fg-muted);
+    padding: 4px 2px 0 2px;
+}
+
+.launcher-results {
+    background: transparent;
+}
+
+.launcher-row {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-soft);
+    padding: 8px 10px;
+}
+
+.launcher-row:hover {
+    background: var(--bg-soft);
+}
+
+.launcher-icon {
+    background: var(--bg-surface);
+    padding: 2px 4px;
+}
+
+.launcher-copy {
+    min-width: 0;
+    background: transparent;
+}
+
+.launcher-hit {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: var(--fg);
+    font-size: 16px;
+    font-weight: 700;
+    padding: 0;
+}
+
+.launcher-hit:hover {
+    background: transparent;
+    color: var(--accent);
+}
+
+.launcher-meta {
+    color: var(--fg-muted);
+    font-size: 12px;
+}

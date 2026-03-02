@@ -235,6 +235,18 @@ ui.label({
 - mouse wheel changes slider value by `scroll_step` (up increases, down decreases).
 - `digits` controls numeric precision for emitted string values (`0..6`).
 
+### `entry`
+- fields: `text`, `bind`, `input_bind`, `activate_bind`, `placeholder`, `max_chars`, `autofocus`
+- defaults:
+  - `text = ""`
+  - `autofocus = false`
+- reads displayed text from `bind` when present, otherwise uses `text`.
+- writes user edits to `input_bind` when set, otherwise writes back to `bind`.
+- pressing Enter writes the current text to `activate_bind` and increments `activate_bind.__user_seq`.
+- `placeholder` sets GTK placeholder text.
+- `max_chars` limits entered text length.
+- `autofocus` grabs focus when the widget is mapped.
+
 ### `workspaces`
 - fields: `count`, `active_only`, `all_outputs`, `output`, `orientation`, `spacing`, `format`, `format_states`, `labels`, `state_labels`, `format_icons`, `show_clients`, `clients_max_items`, `clients_icon_size`, `clients_rules`, `clients_use_glyphs`, `clients_glyph_fallback`, `clients_spacing`, `angle`
 - `orientation`: `horizontal` (default) or `vertical`

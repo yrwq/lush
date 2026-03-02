@@ -43,5 +43,6 @@ pub fn build_widget(
         WidgetKind::Image => content::image::build(cfg, &ctx),
         WidgetKind::Progress => content::progress::build(cfg, &ctx),
         WidgetKind::Slider => content::slider::build(cfg, &ctx),
+        WidgetKind::Entry => content::entry::build(cfg, &ctx),
     }
 }

@@ -1,6 +1,6 @@
 use crate::config::{
-    ButtonProps, ClickAction, ClickBindings, ImageProps, LabelProps, ProgressProps, RevealerProps,
-    WidgetConfig, WidgetProps,
+    ButtonProps, ClickAction, ClickBindings, EntryProps, ImageProps, LabelProps, ProgressProps,
+    RevealerProps, WidgetConfig, WidgetProps,
 };
 
 pub fn expand_widget_template(cfg: &mut WidgetConfig, base: &str, index: usize) {
@@ -64,6 +64,7 @@ pub fn expand_widget_template(cfg: &mut WidgetConfig, base: &str, index: usize) 
             props.input_bind = replace_opt(props.input_bind.take(), base, &item_ref, &item_index);
             props.orientation = replace_opt(props.orientation.take(), base, &item_ref, &item_index);
         }
+        WidgetProps::Entry(props) => expand_entry_props(props, base, &item_ref, &item_index),
         WidgetProps::Popover(props) => {
             props.position = replace_opt(props.position.take(), base, &item_ref, &item_index);
         }
@@ -130,6 +131,14 @@ fn expand_revealer_props(props: &mut RevealerProps, base: &str, item_ref: &str, 
 
 fn expand_progress_props(props: &mut ProgressProps, base: &str, item_ref: &str, item_index: &str) {
     props.bind = replace_opt(props.bind.take(), base, item_ref, item_index);
+}
+
+fn expand_entry_props(props: &mut EntryProps, base: &str, item_ref: &str, item_index: &str) {
+    props.text = replace_opt(props.text.take(), base, item_ref, item_index);
+    props.bind = replace_opt(props.bind.take(), base, item_ref, item_index);
+    props.input_bind = replace_opt(props.input_bind.take(), base, item_ref, item_index);
+    props.activate_bind = replace_opt(props.activate_bind.take(), base, item_ref, item_index);
+    props.placeholder = replace_opt(props.placeholder.take(), base, item_ref, item_index);
 }
 
 fn replace_opt(
