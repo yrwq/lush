@@ -1,3 +1,5 @@
+
+
 # 🌿 lush
 
 > [!WARNING]
@@ -25,6 +27,8 @@ lightweight, extensible wayland shell and widget framework. build completely cus
 [docs](https://yrwq.github.io/lush/getting-started.html)
 
 [examples](./examples) 
+
+Install via `cargo install lushell` and run `lush daemon` to start.
 
 ## minimal example
 
